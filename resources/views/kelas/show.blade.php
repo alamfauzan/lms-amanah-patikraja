@@ -27,9 +27,6 @@
         {{-- Class Overview Card --}}
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-extrabold text-lg shrink-0">
-                    {{ strtoupper(substr($kelas->nama_kelas, 0, 2)) }}
-                </div>
                 <div class="flex-1 min-w-0">
                     <h3 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ $kelas->nama_kelas }}</h3>
                     <p class="text-sm text-slate-400 dark:text-slate-500 mt-0.5">{{ $kelas->deskripsi ?? 'Tidak ada deskripsi.' }}</p>
@@ -50,46 +47,80 @@
                         @endif
                     </div>
                 </div>
-                @if(auth()->user()->hasRole('admin'))
-                    <a href="{{ route('kelas.edit', $kelas->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition-all duration-200">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        Edit Kelas
-                    </a>
-                @endif
+                <div class="flex items-center gap-2 shrink-0">
+                    @if(auth()->user()->hasRole('admin'))
+                        <a href="{{ route('kelas.edit', $kelas->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition-all duration-200">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            Edit Kelas
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data>
             {{-- Subject & Teacher List --}}
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden lg:col-span-2">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden {{ auth()->user()->hasRole('siswa') ? 'lg:col-span-3' : 'lg:col-span-2' }}">
                 <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800 dark:text-slate-100">Mata Pelajaran & Pengampu</h3>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100">Mata Pelajaran</h3>
                     <span class="text-xs font-bold text-indigo-600 bg-indigo-500/10 px-2.5 py-1 rounded-full">{{ $kelas->kelasMapelGuru->count() }} Mapel</span>
                 </div>
 
                 @if($kelas->kelasMapelGuru->isEmpty())
                     <div class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">Belum ada mata pelajaran yang ditambahkan.</div>
                 @else
-                    <div class="divide-y divide-slate-100 dark:divide-slate-800/50">
+                    <div class="p-6 space-y-4">
                         @foreach($kelas->kelasMapelGuru as $kmg)
-                            <div class="px-6 py-4 flex items-center justify-between gap-4">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-9 h-9 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold text-xs shrink-0">
-                                        {{ substr($kmg->mataPelajaran->kode_mapel ?? '??', 0, 3) }}
+                            @php
+                                $materiCount = \App\Models\Materi::where('kelas_id', $kelas->id)->where('guru_id', $kmg->guru_id)->count();
+                                $tugasCount = $kelas->tugas->where('guru_id', $kmg->guru_id)->count();
+                                $kuisCount = $kelas->kuis->where('guru_id', $kmg->guru_id)->count();
+
+                                // Deterministic colors & icons based on mapel ID
+                                $mapelId = $kmg->mata_pelajaran_id;
+                                if ($mapelId % 4 === 0) {
+                                    $iconColor = 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+                                    $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6l-6 6h6M9 17h10" /></svg>';
+                                } elseif ($mapelId % 4 === 1) {
+                                    $iconColor = 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+                                    $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>';
+                                } elseif ($mapelId % 4 === 2) {
+                                    $iconColor = 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
+                                    $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>';
+                                } else {
+                                    $iconColor = 'bg-indigo-500/10 text-indigo-650 dark:bg-indigo-500/20 dark:text-indigo-400';
+                                    $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>';
+                                }
+                            @endphp
+                            <div class="flex items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-300 bg-slate-50/50 dark:bg-slate-900/50 border-slate-150 dark:border-slate-800/80 hover:shadow-sm cursor-pointer"
+                                 @click="window.location.href = '{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $kmg->mata_pelajaran_id]) }}'">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 {{ $iconColor }}">
+                                        {!! $iconSvg !!}
                                     </div>
                                     <div class="min-w-0">
-                                        <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{{ $kmg->mataPelajaran->nama_mapel }}</h4>
-                                        <p class="text-xs text-slate-400 dark:text-slate-500">Pengampu: {{ $kmg->guru->name ?? '-' }}</p>
+                                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate leading-snug">
+                                            {{ $kmg->mataPelajaran->nama_mapel }}
+                                        </h4>
+                                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                                            {{ Str::startsWith(strtolower($kmg->guru->name ?? ''), 'guru') ? ($kmg->guru->name ?? '-') : 'Guru ' . ($kmg->guru->name ?? '-') }} • {{ $kmg->mataPelajaran->kode_mapel }}
+                                        </p>
                                     </div>
                                 </div>
-                                @if(auth()->user()->hasRole('admin'))
-                                    <form method="POST" action="{{ route('kelas.mapel.remove', [$kelas->id, $kmg->id]) }}" onsubmit="return confirm('Hapus mapel ini dari kelas?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                        </button>
-                                    </form>
-                                @endif
+                                <div class="flex items-center gap-2 shrink-0" @click.stop>
+                                    @if(auth()->user()->hasRole('admin'))
+                                        <form method="POST" action="{{ route('kelas.mapel.remove', [$kelas->id, $kmg->id]) }}" onsubmit="return confirm('Hapus mapel ini dari kelas?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-650 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -121,6 +152,7 @@
                 @endif
             </div>
 
+            @if(!auth()->user()->hasRole('siswa'))
             {{-- Student Roster --}}
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -172,6 +204,7 @@
                     </div>
                 @endif
             </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

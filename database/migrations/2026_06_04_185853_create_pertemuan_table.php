@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('pertemuan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
+            $table->foreignId('mata_pelajaran_id')->constrained('mata_pelajaran')->cascadeOnDelete();
             $table->string('judul');
             $table->integer('urutan')->default(1);
             $table->text('deskripsi')->nullable();

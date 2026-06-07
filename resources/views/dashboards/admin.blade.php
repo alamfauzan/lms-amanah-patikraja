@@ -1,10 +1,11 @@
-<div class="space-y-8 animate-fade-in">
-    <!-- Header Page -->
-    <div class="flex flex-col gap-1.5">
-        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Ringkasan Sistem</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Selamat datang kembali, Admin. Berikut ringkasan statistik penggunaan LMS saat ini.</p>
-    </div>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">
+            Dashboard
+        </h2>
+    </x-slot>
 
+<div class="space-y-8 animate-fade-in">
     <!-- Stat Cards Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Stat Card 1 -->
@@ -19,7 +20,7 @@
                 </div>
                 <div>
                     <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Guru</span>
-                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">12</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{{ $totalGuru }}</h3>
                 </div>
             </div>
         </div>
@@ -35,7 +36,7 @@
                 </div>
                 <div>
                     <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Siswa</span>
-                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">148</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{{ $totalSiswa }}</h3>
                 </div>
             </div>
         </div>
@@ -51,7 +52,7 @@
                 </div>
                 <div>
                     <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Kelas</span>
-                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">8</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{{ $totalKelas }}</h3>
                 </div>
             </div>
         </div>
@@ -60,23 +61,23 @@
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
             <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-violet-500/5 group-hover:bg-violet-500/10 rounded-full transition-colors duration-300"></div>
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-405 flex items-center justify-center font-semibold shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-650 dark:text-violet-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                 </div>
                 <div>
                     <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Mata Pelajaran</span>
-                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">12</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{{ $totalMapel }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Details Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- System Activity Log -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm lg:col-span-2 overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
             <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Log Aktivitas Terbaru</h3>
                 <span class="text-xxs font-bold text-indigo-650 bg-indigo-500/10 px-2.5 py-1 rounded-full uppercase">Realtime</span>
@@ -84,108 +85,34 @@
             <div class="p-6">
                 <div class="flow-root">
                     <ul role="list" class="-mb-8">
-                        <!-- Log Item 1 -->
-                        <li>
-                            <div class="relative pb-8">
-                                <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200 dark:bg-slate-800" aria-hidden="true"></span>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
+                        @forelse($systemLogs as $log)
+                            <li>
+                                <div class="relative pb-8">
+                                    @if(!$loop->last)
+                                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200 dark:bg-slate-800" aria-hidden="true"></span>
+                                    @endif
+                                    <div class="relative flex space-x-3">
                                         <div>
-                                            <p class="text-sm text-slate-650 dark:text-slate-350">
-                                                <strong>Guru Ahmad Fauzi</strong> membuat pertemuan baru <span class="font-medium text-slate-800 dark:text-slate-200">"Aljabar Linear II"</span> di Kelas VII A.
-                                            </p>
+                                            <span class="h-8 w-8 rounded-lg {{ $log['icon_bg'] }} flex items-center justify-center">
+                                                {!! $log['icon_svg'] !!}
+                                            </span>
                                         </div>
-                                        <div class="text-right text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
-                                            <time datetime="2026-06-04">5 menit yang lalu</time>
+                                        <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
+                                            <div>
+                                                <p class="text-sm text-slate-650 dark:text-slate-350">
+                                                    {!! $log['text'] !!}
+                                                </p>
+                                            </div>
+                                            <div class="text-right text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
+                                                <time>{{ \Carbon\Carbon::parse($log['time'])->diffForHumans() }}</time>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </li>
-
-                        <!-- Log Item 2 -->
-                        <li>
-                            <div class="relative pb-8">
-                                <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200 dark:bg-slate-800" aria-hidden="true"></span>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-605 flex items-center justify-center">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm text-slate-650 dark:text-slate-350">
-                                                Siswa <strong>Rian Hidayat</strong> menyelesaikan kuis <span class="font-medium text-slate-800 dark:text-slate-200">"Sejarah Kebudayaan Islam - Bab I"</span>.
-                                            </p>
-                                        </div>
-                                        <div class="text-right text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
-                                            <time datetime="2026-06-04">12 menit yang lalu</time>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-
-                        <!-- Log Item 3 -->
-                        <li>
-                            <div class="relative pb-8">
-                                <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200 dark:bg-slate-800" aria-hidden="true"></span>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="h-8 w-8 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 00-2 2z" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm text-slate-650 dark:text-slate-350">
-                                                Admin menyinkronkan <strong>Jadwal Mingguan</strong> untuk Tahun Ajaran 2026/2027 Ganjil.
-                                            </p>
-                                        </div>
-                                        <div class="text-right text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
-                                            <time datetime="2026-06-04">1 jam yang lalu</time>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-
-                        <!-- Log Item 4 -->
-                        <li>
-                            <div class="relative">
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm text-slate-650 dark:text-slate-350">
-                                                Peringatan Sistem: Kuota upload file storage tersisa <span class="font-medium text-red-650 dark:text-red-400">12%</span>.
-                                            </p>
-                                        </div>
-                                        <div class="text-right text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
-                                            <time datetime="2026-06-04">2 jam yang lalu</time>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
+                            </li>
+                        @empty
+                            <div class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">Belum ada aktivitas baru.</div>
+                        @endforelse
                     </ul>
                 </div>
             </div>
@@ -237,3 +164,5 @@
         </div>
     </div>
 </div>
+</x-app-layout>
+

@@ -8,6 +8,7 @@ use App\Models\Kelas;
 use App\Models\User;
 use App\Models\MataPelajaran;
 use App\Models\KelasMapelGuru;
+use App\Models\TahunAjaran;
 
 class KelasController extends Controller
 {
@@ -51,7 +52,8 @@ class KelasController extends Controller
         }
 
         $teachers = User::role('guru')->get();
-        return view('kelas.create', compact('teachers'));
+        $years = TahunAjaran::all();
+        return view('kelas.create', compact('teachers', 'years'));
     }
 
     /**
@@ -124,8 +126,9 @@ class KelasController extends Controller
         }
 
         $teachers = User::role('guru')->get();
+        $years = TahunAjaran::all();
         $kelas = $kela; // Laravel binds it to $kela because singular of 'kelas' is parsed as 'kela' by route binding
-        return view('kelas.edit', compact('kelas', 'teachers'));
+        return view('kelas.edit', compact('kelas', 'teachers', 'years'));
     }
 
     /**

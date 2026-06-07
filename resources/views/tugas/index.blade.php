@@ -7,10 +7,12 @@
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     </a>
                 @endisset
-                <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100">Daftar Tugas @isset($kelas)— {{ $kelas->nama_kelas }}@endisset</h2>
+                <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100">
+                    Daftar Tugas @isset($kelas)— {{ $kelas->nama_kelas }} @isset($mapel) • {{ $mapel->nama_mapel }} @endisset @endisset
+                </h2>
             </div>
             @if(auth()->user()->hasAnyRole(['admin','guru']) && isset($kelas))
-                <a href="{{ route('kelas.tugas.create', $kelas->id) }}"
+                <a href="{{ route('kelas.tugas.create', [$kelas->id, 'mapel_id' => isset($mapel) ? $mapel->id : null]) }}"
                    class="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl shadow transition-all">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     Buat Tugas
@@ -52,7 +54,14 @@
                                     {{ $isPast ? 'Lewat' : 'Aktif' }}
                                 </span>
                             </div>
-                            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1">{{ $t->judul }}</h3>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-1.5 flex-wrap">
+                                @if($t->mataPelajaran)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-violet-100 text-violet-750 dark:bg-violet-900/30 dark:text-violet-400">
+                                        {{ $t->mataPelajaran->nama_mapel }}
+                                    </span>
+                                @endif
+                                {{ $t->judul }}
+                            </h3>
                             @if($t->deskripsi)
                                 <p class="text-xs text-slate-400 mb-3 line-clamp-2">{{ $t->deskripsi }}</p>
                             @endif

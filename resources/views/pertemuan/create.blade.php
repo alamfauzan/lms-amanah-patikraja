@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('kelas.pertemuan.index', $kelas->id) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $preselectedMapelId]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </a>
             <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100">Tambah Pertemuan</h2>
@@ -16,6 +16,19 @@
             </div>
             <form method="POST" action="{{ route('kelas.pertemuan.store', $kelas->id) }}" class="px-8 py-6 space-y-5">
                 @csrf
+                <div>
+                    <label for="mata_pelajaran_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
+                    <select id="mata_pelajaran_id" name="mata_pelajaran_id"
+                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition @error('mata_pelajaran_id') border-red-400 @enderror">
+                        <option value="">Pilih Mata Pelajaran</option>
+                        @foreach($mapels as $mapel)
+                            <option value="{{ $mapel->id }}" {{ old('mata_pelajaran_id', $preselectedMapelId) == $mapel->id ? 'selected' : '' }}>
+                                {{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('mata_pelajaran_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                </div>
                 <div>
                     <label for="judul" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Judul Pertemuan <span class="text-red-500">*</span></label>
                     <input type="text" id="judul" name="judul" value="{{ old('judul') }}" placeholder="Contoh: Pengenalan Aljabar"
@@ -44,7 +57,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         Simpan
                     </button>
-                    <a href="{{ route('kelas.pertemuan.index', $kelas->id) }}" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition">Batal</a>
+                    <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $preselectedMapelId]) }}" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition">Batal</a>
                 </div>
             </form>
         </div>

@@ -14,6 +14,8 @@
     <div class="max-w-4xl mx-auto">
         <form action="{{ route('kelas.kuis.store', $kelas->id) }}" method="POST" class="space-y-6"
               x-data="{
+                  selectedMapel: '{{ old('mata_pelajaran_id', $preselectedMapelId) }}',
+                  meetings: {{ json_encode($kelas->pertemuan->map(fn($p) => ['id' => $p->id, 'urutan' => $p->urutan, 'judul' => $p->judul, 'mapel_id' => $p->mata_pelajaran_id])) }},
                   questions: [
                       { pertanyaan: '', tipe: 'pilihan_ganda', kunci_jawaban: 'a', poin: 10, pilihan: { a: '', b: '', c: '', d: '' } }
                   ],
@@ -55,6 +57,18 @@
 
                 <div class="p-6 space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Mata Pelajaran -->
+                        <div class="md:col-span-2">
+                            <label for="mata_pelajaran_id" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
+                            <select name="mata_pelajaran_id" id="mata_pelajaran_id" required x-model="selectedMapel"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                <option value="">Pilih Mata Pelajaran</option>
+                                @foreach($mapels as $mapel)
+                                    <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Judul -->
                         <div class="md:col-span-2">
                             <label for="judul" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Judul Kuis <span class="text-red-500">*</span></label>
@@ -98,9 +112,9 @@
                             <select name="pertemuan_id" id="pertemuan_id"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                 <option value="">-- Umum (Tidak ditautkan) --</option>
-                                @foreach($kelas->pertemuan as $p)
-                                    <option value="{{ $p->id }}" {{ old('pertemuan_id') == $p->id ? 'selected' : '' }}>Pertemuan ke-{{ $p->urutan }}: {{ $p->judul }}</option>
-                                @endforeach
+                                <template x-for="p in meetings.filter(m => m.mapel_id == selectedMapel)" :key="p.id">
+                                    <option :value="p.id" x-text="`Pertemuan ${p.urutan}: ${p.judul}`" :selected="p.id == '{{ old('pertemuan_id') }}'"></option>
+                                </template>
                             </select>
                         </div>
 

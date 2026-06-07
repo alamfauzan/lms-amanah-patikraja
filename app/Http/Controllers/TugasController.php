@@ -20,17 +20,23 @@ class TugasController extends Controller
     /**
      * List all tugas for a class (guru/admin) or just enrolled siswa's tugas
      */
-    public function index($kelasId = null)
+    public function index(Request $request, $kelasId = null)
     {
         $user = auth()->user();
+        $mapelId = $request->query('mapel_id');
+        $mapel = null;
 
         if ($kelasId) {
             $kelas = Kelas::findOrFail($kelasId);
-            $tugas = Tugas::where('kelas_id', $kelasId)
-                ->with(['guru', 'pertemuan'])
+            $query = Tugas::where('kelas_id', $kelasId);
+            if ($mapelId) {
+                $mapel = \App\Models\MataPelajaran::findOrFail($mapelId);
+                $query->where('mata_pelajaran_id', $mapelId);
+            }
+            $tugas = $query->with(['guru', 'pertemuan'])
                 ->latest()
                 ->get();
-            return view('tugas.index', compact('tugas', 'kelas'));
+            return view('tugas.index', compact('tugas', 'kelas', 'mapel'));
         }
 
         // Global listing per role
@@ -46,29 +52,68 @@ class TugasController extends Controller
         return view('tugas.index', compact('tugas'));
     }
 
-    public function create($kelasId)
+    public function create(Request $request, $kelasId)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
         $kelas = Kelas::with('pertemuan')->findOrFail($kelasId);
-        return view('tugas.create', compact('kelas'));
+
+        $user = auth()->user();
+        if ($user->hasRole('admin')) {
+            $mapels = $kelas->kelasMapelGuru()->with('mataPelajaran')->get()->map->mataPelajaran->unique();
+        } else {
+            $mapels = $kelas->kelasMapelGuru()->where('guru_id', $user->id)->with('mataPelajaran')->get()->map->mataPelajaran->unique();
+        }
+
+        $preselectedMapelId = $request->query('mapel_id');
+
+        $pertemuan = $kelas->pertemuan;
+        if ($preselectedMapelId) {
+            $pertemuan = $pertemuan->where('mata_pelajaran_id', $preselectedMapelId);
+        }
+
+        return view('tugas.create', compact('kelas', 'mapels', 'preselectedMapelId', 'pertemuan'));
     }
 
     public function store(Request $request, $kelasId)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
+        $kelas = Kelas::findOrFail($kelasId);
 
         $validated = $request->validate([
+            'mata_pelajaran_id' => 'required|exists:mata_pelajaran,id',
             'judul'          => 'required|string|max:255',
             'deskripsi'      => 'nullable|string',
             'deadline'       => 'required|date',
             'nilai_maksimum' => 'required|integer|min:1|max:100',
             'pertemuan_id'   => 'nullable|exists:pertemuan,id',
+            'file'           => 'nullable|file|max:10240',
         ]);
 
-        $validated['kelas_id'] = $kelasId;
-        $validated['guru_id']  = auth()->id();
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            $isAssigned = $kelas->kelasMapelGuru()
+                ->where('guru_id', $user->id)
+                ->where('mata_pelajaran_id', $validated['mata_pelajaran_id'])
+                ->exists();
+            if (!$isAssigned) abort(403, 'Anda tidak mengampu mata pelajaran ini di kelas ini.');
+        }
 
-        $tugas = Tugas::create($validated);
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('tugas/attachments', 'public');
+        }
+
+        $tugas = Tugas::create([
+            'kelas_id'          => $kelasId,
+            'mata_pelajaran_id' => $validated['mata_pelajaran_id'],
+            'guru_id'           => auth()->id(),
+            'pertemuan_id'      => $validated['pertemuan_id'] ?? null,
+            'judul'             => $validated['judul'],
+            'deskripsi'         => $validated['deskripsi'] ?? null,
+            'deadline'          => $validated['deadline'],
+            'nilai_maksimum'    => $validated['nilai_maksimum'],
+            'file_path'         => $filePath,
+        ]);
 
         // Notify all siswa in class
         $kelas = Kelas::with('siswa')->findOrFail($kelasId);
@@ -82,14 +127,14 @@ class TugasController extends Controller
             ]);
         }
 
-        return redirect()->route('kelas.tugas.index', $kelasId)
+        return redirect()->route('kelas.tugas.index', [$kelasId, 'mapel_id' => $validated['mata_pelajaran_id']])
             ->with('success', 'Tugas berhasil dibuat!');
     }
 
     public function show($kelasId, $id)
     {
         $kelas = Kelas::findOrFail($kelasId);
-        $tugas = Tugas::with(['guru', 'pertemuan', 'pengumpulan.siswa'])->findOrFail($id);
+        $tugas = Tugas::with(['guru', 'pertemuan.mataPelajaran', 'pengumpulan.siswa', 'mataPelajaran'])->findOrFail($id);
         $user  = auth()->user();
 
         $pengumpulan = null;
@@ -105,32 +150,83 @@ class TugasController extends Controller
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
         $kelas = Kelas::with('pertemuan')->findOrFail($kelasId);
         $tugas = Tugas::findOrFail($id);
-        return view('tugas.edit', compact('kelas', 'tugas'));
+
+        $user = auth()->user();
+        if ($user->hasRole('admin')) {
+            $mapels = $kelas->kelasMapelGuru()->with('mataPelajaran')->get()->map->mataPelajaran->unique();
+        } else {
+            $mapels = $kelas->kelasMapelGuru()->where('guru_id', $user->id)->with('mataPelajaran')->get()->map->mataPelajaran->unique();
+        }
+
+        $pertemuan = $kelas->pertemuan->where('mata_pelajaran_id', $tugas->mata_pelajaran_id);
+
+        return view('tugas.edit', compact('kelas', 'tugas', 'mapels', 'pertemuan'));
     }
 
     public function update(Request $request, $kelasId, $id)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
+        $kelas = Kelas::findOrFail($kelasId);
+        $tugas = Tugas::findOrFail($id);
 
         $validated = $request->validate([
+            'mata_pelajaran_id' => 'required|exists:mata_pelajaran,id',
             'judul'          => 'required|string|max:255',
             'deskripsi'      => 'nullable|string',
             'deadline'       => 'required|date',
             'nilai_maksimum' => 'required|integer|min:1|max:100',
             'pertemuan_id'   => 'nullable|exists:pertemuan,id',
+            'file'           => 'nullable|file|max:10240',
+            'hapus_berkas'   => 'nullable|boolean',
         ]);
 
-        Tugas::findOrFail($id)->update($validated);
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            $isAssigned = $kelas->kelasMapelGuru()
+                ->where('guru_id', $user->id)
+                ->where('mata_pelajaran_id', $validated['mata_pelajaran_id'])
+                ->exists();
+            if (!$isAssigned) abort(403, 'Anda tidak mengampu mata pelajaran ini di kelas ini.');
+        }
 
-        return redirect()->route('kelas.tugas.index', $kelasId)
-            ->with('success', 'Tugas berhasil diupdate!');
+        $filePath = $tugas->file_path;
+
+        if ($request->hapus_berkas && $filePath) {
+            Storage::disk('public')->delete($filePath);
+            $filePath = null;
+        }
+
+        if ($request->hasFile('file')) {
+            if ($tugas->file_path) {
+                Storage::disk('public')->delete($tugas->file_path);
+            }
+            $filePath = $request->file('file')->store('tugas/attachments', 'public');
+        }
+
+        $tugas->update([
+            'mata_pelajaran_id' => $validated['mata_pelajaran_id'],
+            'judul'             => $validated['judul'],
+            'deskripsi'         => $validated['deskripsi'],
+            'deadline'          => $validated['deadline'],
+            'nilai_maksimum'    => $validated['nilai_maksimum'],
+            'pertemuan_id'      => $validated['pertemuan_id'] ?? null,
+            'file_path'         => $filePath,
+        ]);
+
+        return redirect()->route('tugas.show', [$kelasId, $id])
+            ->with('success', 'Tugas berhasil diperbarui!');
     }
 
     public function destroy($kelasId, $id)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
-        Tugas::findOrFail($id)->delete();
-        return redirect()->route('kelas.tugas.index', $kelasId)
+        $tugas = Tugas::findOrFail($id);
+        $mapelId = $tugas->mata_pelajaran_id;
+        if ($tugas->file_path) {
+            Storage::disk('public')->delete($tugas->file_path);
+        }
+        $tugas->delete();
+        return redirect()->route('kelas.tugas.index', [$kelasId, 'mapel_id' => $mapelId])
             ->with('success', 'Tugas berhasil dihapus!');
     }
 
@@ -152,31 +248,48 @@ class TugasController extends Controller
             'catatan'      => 'nullable|string',
         ]);
 
-        $filePath = null;
+        $pengumpulan = PengumpulanTugas::where(['tugas_id' => $id, 'siswa_id' => $user->id])->first();
+        $filePath = $pengumpulan ? $pengumpulan->file_jawaban : null;
+
         if ($request->hasFile('file_jawaban')) {
+            if ($pengumpulan && $pengumpulan->file_jawaban) {
+                Storage::disk('public')->delete($pengumpulan->file_jawaban);
+            }
             $filePath = $request->file('file_jawaban')->store('tugas/' . $id, 'public');
+        } elseif ($request->input('hapus_file_jawaban') == '1') {
+            if ($pengumpulan && $pengumpulan->file_jawaban) {
+                Storage::disk('public')->delete($pengumpulan->file_jawaban);
+            }
+            $filePath = null;
         }
+
+        $isDraft = $request->input('action') === 'draft';
+        $status = ($filePath && !$isDraft) ? 'terkumpul' : 'belum';
 
         $pengumpulan = PengumpulanTugas::updateOrCreate(
             ['tugas_id' => $id, 'siswa_id' => $user->id],
             [
-                'file_jawaban'    => $filePath ?? optional(PengumpulanTugas::where(['tugas_id' => $id, 'siswa_id' => $user->id])->first())->file_jawaban,
+                'file_jawaban'    => $filePath,
                 'catatan'         => $request->catatan,
                 'dikumpulkan_at'  => now(),
-                'status'          => 'terkumpul',
+                'status'          => $status,
             ]
         );
 
-        // Notify guru
-        Notifikasi::create([
-            'user_id' => $tugas->guru_id,
-            'judul'   => 'Tugas Dikumpulkan',
-            'pesan'   => $user->name . ' mengumpulkan tugas "' . $tugas->judul . '".',
-            'tipe'    => 'pengumpulan',
-            'link'    => route('tugas.show', [$kelasId, $id]),
-        ]);
+        if ($status === 'terkumpul') {
+            // Notify guru
+            Notifikasi::create([
+                'user_id' => $tugas->guru_id,
+                'judul'   => 'Tugas Dikumpulkan',
+                'pesan'   => $user->name . ' mengumpulkan tugas "' . $tugas->judul . '".',
+                'tipe'    => 'pengumpulan',
+                'link'    => route('tugas.show', [$kelasId, $id]),
+            ]);
 
-        return back()->with('success', 'Tugas berhasil dikumpulkan!');
+            return back()->with('success', 'Tugas berhasil dikumpulkan!');
+        }
+
+        return back()->with('success', 'Draft jawaban berhasil disimpan!');
     }
 
     /**

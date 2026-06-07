@@ -30,7 +30,7 @@ class MateriController extends Controller
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
         $kelas     = Kelas::findOrFail($kelasId);
-        $pertemuan = Pertemuan::findOrFail($pertemuanId);
+        $pertemuan = Pertemuan::with('mataPelajaran')->findOrFail($pertemuanId);
         return view('materi.create', compact('kelas', 'pertemuan'));
     }
 
@@ -40,17 +40,25 @@ class MateriController extends Controller
 
         $validated = $request->validate([
             'judul'  => 'required|string|max:255',
-            'tipe'   => 'required|in:teks,file,video',
-            'konten' => 'required_if:tipe,teks|nullable|string',
-            'file'   => 'required_if:tipe,file|nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:20480',
-            'file_video' => 'required_if:tipe,video|nullable|file|mimes:mp4,avi,mkv|max:102400',
+            'konten' => 'nullable|string',
+            'file'   => 'nullable|file|max:102400', // max 100MB
         ]);
 
         $filePath = null;
-        if ($request->tipe === 'file' && $request->hasFile('file')) {
-            $filePath = $request->file('file')->store('materi/files', 'public');
-        } elseif ($request->tipe === 'video' && $request->hasFile('file_video')) {
-            $filePath = $request->file('file_video')->store('materi/videos', 'public');
+        $tipe = 'teks';
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $videoExtensions = ['mp4', 'avi', 'mkv', 'webm', 'mov'];
+            
+            if (in_array($extension, $videoExtensions)) {
+                $filePath = $file->store('materi/videos', 'public');
+                $tipe = 'video';
+            } else {
+                $filePath = $file->store('materi/files', 'public');
+                $tipe = 'file';
+            }
         }
 
         $materi = Materi::create([
@@ -58,8 +66,8 @@ class MateriController extends Controller
             'kelas_id'     => $kelasId,
             'guru_id'      => auth()->id(),
             'judul'        => $validated['judul'],
-            'tipe'         => $validated['tipe'],
-            'konten'       => $validated['tipe'] === 'teks' ? $validated['konten'] : null,
+            'tipe'         => $tipe,
+            'konten'       => $validated['konten'],
             'file_path'    => $filePath,
         ]);
 
@@ -75,20 +83,21 @@ class MateriController extends Controller
             ]);
         }
 
-        return redirect()->route('kelas.pertemuan.show', [$kelasId, $pertemuanId])
+        $pertemuan = Pertemuan::findOrFail($pertemuanId);
+        return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $pertemuan->mata_pelajaran_id])
             ->with('success', 'Materi berhasil ditambahkan!');
     }
 
     public function show($id)
     {
-        $materi = Materi::with(['pertemuan', 'kelas', 'guru'])->findOrFail($id);
+        $materi = Materi::with(['pertemuan.mataPelajaran', 'kelas', 'guru'])->findOrFail($id);
         return view('materi.show', compact('materi'));
     }
 
     public function edit($id)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
-        $materi = Materi::with(['pertemuan', 'kelas'])->findOrFail($id);
+        $materi = Materi::with(['pertemuan.mataPelajaran', 'kelas'])->findOrFail($id);
         return view('materi.edit', compact('materi'));
     }
 
@@ -96,14 +105,51 @@ class MateriController extends Controller
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
 
-        $materi    = Materi::findOrFail($id);
+        $materi = Materi::with('pertemuan')->findOrFail($id);
         $validated = $request->validate([
             'judul'  => 'required|string|max:255',
             'konten' => 'nullable|string',
+            'file'   => 'nullable|file|max:102400',
+            'hapus_berkas' => 'nullable|boolean',
         ]);
 
-        $materi->update($validated);
-        return redirect()->route('materi.show', $id)->with('success', 'Materi berhasil diupdate!');
+        $filePath = $materi->file_path;
+        $tipe = $materi->tipe;
+
+        if ($request->hapus_berkas && $filePath) {
+            Storage::disk('public')->delete($filePath);
+            $filePath = null;
+            $tipe = 'teks';
+        }
+
+        if ($request->hasFile('file')) {
+            if ($materi->file_path) {
+                Storage::disk('public')->delete($materi->file_path);
+            }
+
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $videoExtensions = ['mp4', 'avi', 'mkv', 'webm', 'mov'];
+            
+            if (in_array($extension, $videoExtensions)) {
+                $filePath = $file->store('materi/videos', 'public');
+                $tipe = 'video';
+            } else {
+                $filePath = $file->store('materi/files', 'public');
+                $tipe = 'file';
+            }
+        } elseif ($filePath === null) {
+            $tipe = 'teks';
+        }
+
+        $materi->update([
+            'judul'     => $validated['judul'],
+            'konten'    => $validated['konten'],
+            'file_path' => $filePath,
+            'tipe'      => $tipe,
+        ]);
+
+        return redirect()->route('materi.show', $id)->with('success', 'Materi berhasil diperbarui!');
     }
 
     public function destroy($id)

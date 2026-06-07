@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('kelas.pertemuan.index', $kelas->id) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $pertemuan->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </a>
             <div>
                 <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100">{{ $pertemuan->judul }}</h2>
-                <p class="text-xs text-slate-400 leading-none mt-0.5">Pertemuan ke-{{ $pertemuan->urutan }} • {{ $kelas->nama_kelas }}</p>
+                <p class="text-xs text-slate-400 leading-none mt-0.5">Pertemuan ke-{{ $pertemuan->urutan }} • {{ $pertemuan->mataPelajaran->nama_mapel }}</p>
             </div>
         </div>
     </x-slot>

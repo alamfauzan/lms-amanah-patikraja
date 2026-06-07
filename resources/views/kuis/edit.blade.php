@@ -22,6 +22,15 @@
                 @csrf
                 @method('PUT')
 
+                <!-- Mata Pelajaran (Read-only) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Mata Pelajaran</label>
+                    <div class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-650 dark:text-slate-350 text-sm font-semibold">
+                        {{ $kuis->mataPelajaran->nama_mapel }} ({{ $kuis->mataPelajaran->kode_mapel }})
+                    </div>
+                    <input type="hidden" name="mata_pelajaran_id" value="{{ $kuis->mata_pelajaran_id }}">
+                </div>
+
                 <!-- Judul -->
                 <div>
                     <label for="judul" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Judul Kuis <span class="text-red-500">*</span></label>

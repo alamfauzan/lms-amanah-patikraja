@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('kuis', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
+            $table->foreignId('mata_pelajaran_id')->constrained('mata_pelajaran')->cascadeOnDelete();
             $table->foreignId('guru_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('pertemuan_id')->nullable()->constrained('pertemuan')->nullOnDelete();
             $table->string('judul');

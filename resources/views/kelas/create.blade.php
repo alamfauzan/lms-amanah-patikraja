@@ -34,9 +34,15 @@
                 {{-- Tahun Ajaran --}}
                 <div>
                     <label for="tahun_ajaran" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tahun Ajaran <span class="text-red-500">*</span></label>
-                    <input type="text" id="tahun_ajaran" name="tahun_ajaran" value="{{ old('tahun_ajaran') }}"
-                           placeholder="Contoh: 2026/2027 Ganjil"
-                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 @error('tahun_ajaran') border-red-400 @enderror">
+                    <select id="tahun_ajaran" name="tahun_ajaran" required
+                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 @error('tahun_ajaran') border-red-400 @enderror">
+                        <option value="">-- Pilih Tahun Ajaran --</option>
+                        @foreach($years as $y)
+                            <option value="{{ $y->tahun_ajaran }}" {{ old('tahun_ajaran', optional($years->where('is_aktif', true)->first())->tahun_ajaran) == $y->tahun_ajaran ? 'selected' : '' }}>
+                                {{ $y->tahun_ajaran }} {{ $y->is_aktif ? '(Aktif)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('tahun_ajaran')
                         <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                     @enderror

@@ -1,170 +1,428 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('kelas.tugas.index', $kelas->id) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            </a>
-            <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100">{{ $tugas->judul }}</h2>
+        <div class="flex items-center justify-between gap-4 min-w-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $tugas->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <div class="min-w-0">
+                    <h2 class="font-bold text-sm sm:text-base md:text-lg text-slate-800 dark:text-slate-100 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-md md:max-w-xl" title="{{ $tugas->judul }}">{{ $tugas->judul }}</h2>
+                </div>
+            </div>
+
+            @if(auth()->user()->hasAnyRole(['admin','guru']))
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="{{ route('kelas.tugas.edit', [$kelas->id, $tugas->id]) }}"
+                       class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-slate-600 dark:text-slate-350 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200">
+                        Edit
+                    </a>
+                    <form method="POST" action="{{ route('kelas.tugas.destroy', [$kelas->id, $tugas->id]) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?')" class="inline">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-650 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/40 dark:border-red-900/40 transition duration-200">
+                            Hapus
+                        </button>
+                    </form>
+                </div>
+            @endif
         </div>
     </x-slot>
 
-    <div class="space-y-6">
+    <div class="max-w-3xl mx-auto space-y-6">
         @if(session('success'))
-            <div class="flex items-center gap-3 px-5 py-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-455 rounded-xl text-sm font-semibold">
                 {{ session('success') }}
             </div>
         @endif
         @if(session('error'))
-            <div class="flex items-center gap-3 px-5 py-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl text-sm font-medium text-red-700 dark:text-red-400">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-455 rounded-xl text-sm font-semibold">
                 {{ session('error') }}
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {{-- Detail Tugas --}}
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6">
-                    <div class="flex items-start gap-4 mb-5">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center shrink-0">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+        <!-- Section 1: Assignment Header Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400">
+                        {{ $tugas->mataPelajaran->nama_mapel ?? 'Mata Pelajaran' }}
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                        {{ now()->gt($tugas->deadline) ? 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400' }}">
+                        {{ now()->gt($tugas->deadline) ? 'Tutup' : 'Aktif' }}
+                    </span>
+                </div>
+            </div>
+
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
+                {{ $tugas->judul }}
+            </h1>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-sm">
+                <!-- Deadline -->
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Batas Pengumpulan</p>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 {{ now()->gt($tugas->deadline) ? 'text-red-550' : '' }}">
+                            {{ $tugas->deadline->format('d M Y, H:i') }} WIB
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Maximum Score -->
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nilai Maksimum</p>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                            {{ $tugas->nilai_maksimum }} Poin
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Teacher -->
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Guru Pengampu</p>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                            {{ $tugas->guru->name }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Assignment Instructions Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6 space-y-4">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
+                Instruksi Tugas
+            </h2>
+            <div class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-350 leading-relaxed text-sm">
+                @if($tugas->deskripsi)
+                    {!! nl2br(e($tugas->deskripsi)) !!}
+                @else
+                    <p class="text-xs text-slate-400 italic">Tidak ada instruksi khusus yang diberikan.</p>
+                @endif
+            </div>
+
+            @if($tugas->file_path)
+                <div class="mt-4 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ $tugas->judul }}</h3>
-                            <p class="text-sm text-slate-400 mt-0.5">Dibuat oleh {{ $tugas->guru->name }}</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{{ basename($tugas->file_path) }}</p>
+                            <p class="text-[10px] text-slate-400">Berkas instruksi dari guru</p>
                         </div>
                     </div>
+                    <a href="{{ asset('storage/' . $tugas->file_path) }}" download class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition shrink-0">
+                        Unduh
+                    </a>
+                </div>
+            @endif
+        </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
-                        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Deadline</p>
-                            <p class="text-sm font-bold {{ now()->gt($tugas->deadline) ? 'text-red-500' : 'text-slate-800 dark:text-slate-200' }}">{{ $tugas->deadline->format('d M Y') }}</p>
-                            <p class="text-xs text-slate-400">{{ $tugas->deadline->format('H:i') }} WIB</p>
+        <!-- Section 3: Grading Result Card -->
+        @if(auth()->user()->hasRole('siswa') && $pengumpulan && $pengumpulan->status === 'dinilai')
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">
+                        Hasil Penilaian
+                    </h2>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                        Selesai Dinilai
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Score Block -->
+                    <div class="sm:col-span-1 p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col justify-center items-center text-center">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Nilai Akhir</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">{{ (float) $pengumpulan->nilai }}</span>
+                            <span class="text-xs text-slate-400 font-semibold">/ {{ $tugas->nilai_maksimum }}</span>
                         </div>
-                        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nilai Maks</p>
-                            <p class="text-2xl font-extrabold text-slate-800 dark:text-slate-100">{{ $tugas->nilai_maksimum }}</p>
-                        </div>
-                        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                            @if(now()->gt($tugas->deadline))
-                                <span class="inline-block px-2.5 py-1 bg-red-500/10 text-red-500 text-xs font-semibold rounded-full">Lewat Deadline</span>
-                            @else
-                                <span class="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-600 text-xs font-semibold rounded-full">Aktif</span>
+                    </div>
+                    
+                    <!-- Feedback Block -->
+                    <div class="sm:col-span-2 p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col justify-between gap-4">
+                        <div class="prose prose-slate dark:prose-invert max-w-none space-y-2">
+                            <p class="text-xs text-slate-600 dark:text-slate-300 italic leading-relaxed">
+                                "{{ $pengumpulan->feedback ?? 'Tidak ada catatan tambahan.' }}"
+                            </p>
+                            @if($pengumpulan->file_jawaban)
+                                <div class="pt-2 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800/60">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Berkas Jawaban Anda:</span>
+                                    <a href="{{ asset('storage/' . $pengumpulan->file_jawaban) }}" download class="inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+                                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                        </svg>
+                                        {{ basename($pengumpulan->file_jawaban) }}
+                                    </a>
+                                </div>
                             @endif
                         </div>
+                        <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900 flex items-center justify-center font-bold text-[10px] text-indigo-600 dark:text-indigo-400">
+                                    {{ strtoupper(substr($tugas->guru->name, 0, 1)) }}
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-200">{{ $tugas->guru->name }}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">
+                                Dikumpulkan: {{ $pengumpulan->dikumpulkan_at->format('d M Y') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- Submission Status Banner for Submitted Tasks -->
+        @if(auth()->user()->hasRole('siswa') && $pengumpulan && $pengumpulan->status === 'terkumpul')
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6 space-y-4">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    Status Pengumpulan
+                </h2>
+                <div class="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap leading-none text-xs">
+                            <span class="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                Terkirim
+                            </span>
+                            <span class="text-slate-300 dark:text-slate-700">•</span>
+                            <span class="text-slate-400">
+                                Dikumpulkan: {{ $pengumpulan->dikumpulkan_at->format('d M Y, H:i') }} WIB
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Tugas telah terkirim dan sedang menunggu penilaian dari guru pengampu.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- For Student: Submission Area & Form -->
+        @if(auth()->user()->hasRole('siswa') && !now()->gt($tugas->deadline) && (!$pengumpulan || $pengumpulan->status !== 'dinilai'))
+            <form method="POST" action="{{ route('tugas.submit', [$kelas->id, $tugas->id]) }}" enctype="multipart/form-data" class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6 space-y-6">
+                @csrf
+                <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    Unggah Jawaban
+                </h2>
+
+                <!-- Section 4: Submission Area (Drag & Drop Component) -->
+                <div x-data="{ 
+                    files: null, 
+                    dragover: false, 
+                    hasExistingFile: {{ ($pengumpulan && $pengumpulan->file_jawaban) ? 'true' : 'false' }}, 
+                    isDeleted: false 
+                }" class="space-y-3">
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">File Jawaban</label>
+                    
+                    <!-- Hidden input to tell backend to delete file -->
+                    <input type="hidden" name="hapus_file_jawaban" :value="isDeleted ? '1' : '0'">
+
+                    <!-- Drag and Drop Box: hidden if there is a selected file or an active existing file -->
+                    <div 
+                        x-show="(!files || files.length === 0) && (!hasExistingFile || isDeleted)"
+                        @dragover.prevent="dragover = true"
+                        @dragleave.prevent="dragover = false"
+                        @drop.prevent="dragover = false; files = $event.dataTransfer.files; $refs.fileInput.files = files; $refs.fileInput.dispatchEvent(new Event('change'))"
+                        :class="dragover ? 'border-indigo-500 bg-indigo-50/30 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50'"
+                        class="border-2 border-dashed rounded-xl p-6 transition-all duration-200 flex flex-col items-center justify-center text-center cursor-pointer relative group"
+                    >
+                        <input type="file" name="file_jawaban" id="file_jawaban" ref="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
+                               @change="files = $event.target.files"
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                               
+                        <div class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-100 dark:border-slate-700/50 text-slate-400 group-hover:text-indigo-500 transition-colors duration-200 mb-3">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                        </div>
+                        
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                            <span class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">Pilih berkas</span> atau seret ke sini
+                        </p>
+                        <p class="text-xs text-slate-400">Mendukung berkas PDF, Word, PPT, atau ZIP. Maksimal 10MB.</p>
                     </div>
 
-                    @if($tugas->deskripsi)
-                        <div class="prose prose-sm dark:prose-invert max-w-none border-t border-slate-100 dark:border-slate-800 pt-4">
-                            {!! nl2br(e($tugas->deskripsi)) !!}
+                    <!-- Selected File Preview Card (shows when files are picked) -->
+                    <div x-show="files && files.length > 0" class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <svg class="w-5 h-5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate" x-text="files ? files[0].name : ''"></p>
+                                <p class="text-[10px] text-slate-400" x-text="files ? Math.round(files[0].size / 1024) + ' KB' : ''"></p>
+                            </div>
+                        </div>
+                        <button type="button" @click="files = null; $refs.fileInput.value = ''; if (hasExistingFile) isDeleted = true" class="p-1 rounded-md text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Existing Uploaded File Card (shows if page loaded with file and it hasn't been deleted yet) -->
+                    @if($pengumpulan && $pengumpulan->file_jawaban)
+                        <div x-show="hasExistingFile && !isDeleted && (!files || files.length === 0)" class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <svg class="w-5 h-5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{{ basename($pengumpulan->file_jawaban) }}</p>
+                                    <p class="text-[10px] text-slate-400 font-medium">Berkas Terunggah</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <a href="{{ asset('storage/' . $pengumpulan->file_jawaban) }}" download class="text-xs text-indigo-650 dark:text-indigo-400 font-bold hover:underline shrink-0">
+                                    Unduh
+                                </a>
+                                <button type="button" @click="isDeleted = true; if($refs.fileInput) { $refs.fileInput.value = ''; files = null; }" class="text-xs text-red-500 font-bold hover:underline shrink-0">
+                                    Hapus
+                                </button>
+                            </div>
                         </div>
                     @endif
                 </div>
 
-                {{-- Siswa: Submit Form --}}
-                @if(auth()->user()->hasRole('siswa'))
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
-                        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-                            <h4 class="font-bold text-slate-800 dark:text-slate-100">Pengumpulan Tugas</h4>
-                        </div>
-                        <div class="p-6">
-                            @if($pengumpulan && $pengumpulan->status === 'dinilai')
-                                <div class="bg-emerald-50 dark:bg-emerald-500/10 rounded-xl p-5 mb-4">
-                                    <p class="text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-1">✅ Sudah Dinilai</p>
-                                    <p class="text-3xl font-extrabold text-emerald-600">{{ $pengumpulan->nilai }} <span class="text-sm font-normal text-emerald-400">/ {{ $tugas->nilai_maksimum }}</span></p>
-                                    @if($pengumpulan->feedback)
-                                        <p class="text-sm text-emerald-700 dark:text-emerald-400 mt-2 border-t border-emerald-200 dark:border-emerald-500/20 pt-2">💬 {{ $pengumpulan->feedback }}</p>
-                                    @endif
-                                </div>
-                            @elseif($pengumpulan && $pengumpulan->status === 'terkumpul')
-                                <div class="bg-blue-50 dark:bg-blue-500/10 rounded-xl p-4 mb-4 text-sm text-blue-700 dark:text-blue-400 font-medium">
-                                    📬 Tugas terkumpul pada {{ $pengumpulan->dikumpulkan_at->format('d M Y H:i') }}. Menunggu penilaian.
-                                </div>
-                            @endif
+                <!-- Section 5: Student Message -->
+                <div class="space-y-2">
+                    <label for="catatan" class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Pesan untuk Guru (Opsional)</label>
+                    <textarea id="catatan" name="catatan" rows="3" placeholder="Tulis catatan atau pesan Anda di sini..."
+                              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none shadow-sm">{{ $pengumpulan?->catatan }}</textarea>
+                </div>
 
-                            @if(!now()->gt($tugas->deadline))
-                                <form method="POST" action="{{ route('tugas.submit', [$kelas->id, $tugas->id]) }}" enctype="multipart/form-data" class="space-y-4">
-                                    @csrf
-                                    <div>
-                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Upload File Jawaban</label>
-                                        <input type="file" name="file_jawaban" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
-                                               class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
-                                        <p class="text-xs text-slate-400 mt-1">PDF, DOC, PPT, ZIP. Maks 10MB.</p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Catatan (opsional)</label>
-                                        <textarea name="catatan" rows="2" placeholder="Tambahkan catatan untuk guru..."
-                                                  class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none">{{ $pengumpulan?->catatan }}</textarea>
-                                    </div>
-                                    <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl shadow transition">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                        {{ $pengumpulan ? 'Update Pengumpulan' : 'Kumpulkan Tugas' }}
-                                    </button>
-                                </form>
-                            @else
-                                <p class="text-sm text-red-500 font-medium">⏰ Deadline telah lewat. Pengumpulan ditutup.</p>
-                            @endif
-                        </div>
+                <!-- Section 6: Action Area -->
+                <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="submit" name="action" value="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition duration-200 shadow-sm">
+                        {{ $pengumpulan ? 'Perbarui Jawaban' : 'Kirim Jawaban' }}
+                    </button>
+                    <button type="submit" name="action" value="draft" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition duration-200 shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                        Simpan Draft
+                    </button>
+                </div>
+            </form>
+        @else
+            @if(auth()->user()->hasRole('siswa') && !$pengumpulan)
+                <div class="p-4 bg-red-50 border border-red-200 text-xs text-red-600 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 font-medium rounded-xl flex items-center gap-2">
+                    <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Batas waktu pengumpulan telah lewat. Pengumpulan tugas ditutup.
+                </div>
+            @endif
+        @endif
+
+        <!-- For Teacher / Admin: Submissions & Grading -->
+        @if(auth()->user()->hasAnyRole(['admin','guru']))
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Daftar Pengumpulan</h3>
+                        <p class="text-xs text-slate-400 mt-1">Daftar siswa yang telah mengumpulkan tugas ini.</p>
                     </div>
-                @endif
-            </div>
+                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-900/50">
+                        {{ $tugas->pengumpulan->where('status','!=','belum')->count() }} Terkumpul
+                    </span>
+                </div>
 
-            {{-- Sidebar: Guru actions & pengumpulan list --}}
-            <div class="space-y-4">
-                @if(auth()->user()->hasAnyRole(['admin','guru']))
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-5">
-                        <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-3 text-sm">Pengaturan</h4>
-                        <div class="flex gap-2">
-                            <a href="{{ route('kelas.tugas.edit', [$kelas->id, $tugas->id]) }}" class="flex-1 text-center px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-lg transition">Edit</a>
-                            <form method="POST" action="{{ route('kelas.tugas.destroy', [$kelas->id, $tugas->id]) }}" onsubmit="return confirm('Hapus tugas ini?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition">Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Pengumpulan</h4>
-                            <span class="text-xs font-bold text-indigo-600 bg-indigo-500/10 px-2 py-0.5 rounded-full">{{ $tugas->pengumpulan->where('status','!=','belum')->count() }}</span>
-                        </div>
-                        @if($tugas->pengumpulan->isEmpty())
-                            <div class="p-5 text-xs text-slate-400 text-center">Belum ada yang mengumpulkan.</div>
-                        @else
-                            <div class="divide-y divide-slate-100 dark:divide-slate-800/50 max-h-80 overflow-y-auto">
-                                @foreach($tugas->pengumpulan as $p)
-                                    <div class="p-4">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ $p->siswa->name }}</span>
-                                            <span class="text-xs px-2 py-0.5 rounded-full {{ $p->status === 'dinilai' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600' }}">
-                                                {{ ucfirst($p->status) }}
-                                            </span>
+                @if($tugas->pengumpulan->isEmpty())
+                    <div class="p-8 text-center text-xs text-slate-400 dark:text-slate-500">Belum ada siswa yang mengumpulkan tugas ini.</div>
+                @else
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800/50">
+                        @foreach($tugas->pengumpulan as $p)
+                            <div class="p-6 space-y-4">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-200/50 dark:border-slate-700/50">
+                                            {{ strtoupper(substr($p->siswa->name, 0, 1)) }}
                                         </div>
-                                        @if($p->status !== 'dinilai')
-                                            <form method="POST" action="{{ route('tugas.grade', [$kelas->id, $tugas->id, $p->id]) }}" class="space-y-2">
-                                                @csrf
-                                                <div class="flex gap-2">
-                                                    <input type="number" name="nilai" min="0" max="{{ $tugas->nilai_maksimum }}" placeholder="Nilai" value="{{ $p->nilai }}"
-                                                           class="w-20 px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                                    <input type="text" name="feedback" placeholder="Feedback..." value="{{ $p->feedback }}"
-                                                           class="flex-1 px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                                    <button type="submit" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition">
-                                                        ✓
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        @else
-                                            <p class="text-xs text-emerald-600 font-semibold">Nilai: {{ $p->nilai }}</p>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">{{ $p->siswa->name }}</p>
+                                            <p class="text-[10px] text-slate-400">Dikumpulkan {{ $p->dikumpulkan_at->format('d M Y, H:i') }} WIB</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $p->status === 'dinilai' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' }}">
+                                        {{ $p->status === 'dinilai' ? 'Sudah Dinilai' : 'Perlu Dinilai' }}
+                                    </span>
+                                </div>
+
+                                @if($p->catatan || $p->file_jawaban)
+                                    <div class="p-4 bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
+                                        @if($p->file_jawaban)
+                                            <div class="flex items-center justify-between gap-2 text-xs">
+                                                <span class="font-medium text-slate-500">Berkas Jawaban:</span>
+                                                <a href="{{ asset('storage/' . $p->file_jawaban) }}" download class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                    </svg>
+                                                    Unduh Berkas
+                                                </a>
+                                            </div>
+                                        @endif
+                                        @if($p->catatan)
+                                            <div class="text-xs">
+                                                <span class="font-medium text-slate-500">Catatan Siswa:</span>
+                                                <p class="text-slate-700 dark:text-slate-300 mt-1 italic leading-relaxed">"{{ $p->catatan }}"</p>
+                                            </div>
                                         @endif
                                     </div>
-                                @endforeach
+                                @endif
+
+                                @if($p->status !== 'dinilai')
+                                    <form method="POST" action="{{ route('tugas.grade', [$kelas->id, $tugas->id, $p->id]) }}" class="flex flex-col sm:flex-row gap-3 pt-2">
+                                        @csrf
+                                        <div class="w-full sm:w-28 shrink-0">
+                                            <input type="number" name="nilai" min="0" max="{{ $tugas->nilai_maksimum }}" placeholder="Nilai" required
+                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        </div>
+                                        <div class="flex-1">
+                                            <input type="text" name="feedback" placeholder="Feedback/komentar..."
+                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        </div>
+                                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition duration-200 shrink-0 shadow-sm">
+                                            Simpan Nilai
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex items-center justify-between gap-4">
+                                        <div class="text-xs min-w-0">
+                                            <span class="font-medium text-slate-550 block">Feedback/Komentar Guru:</span>
+                                            <p class="text-slate-700 dark:text-slate-300 mt-1 font-semibold truncate">{{ $p->feedback ?? 'Tidak ada feedback.' }}</p>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <p class="text-xl font-black text-emerald-650 dark:text-emerald-400">{{ $p->nilai }} <span class="text-xs font-normal text-slate-400">/ {{ $tugas->nilai_maksimum }}</span></p>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
-                        @endif
+                        @endforeach
                     </div>
                 @endif
             </div>
-        </div>
+        @endif
     </div>
 </x-app-layout>

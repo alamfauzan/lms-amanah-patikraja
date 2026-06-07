@@ -1,10 +1,11 @@
-<div class="space-y-8 animate-fade-in">
-    <!-- Header Page -->
-    <div class="flex flex-col gap-1.5">
-        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Dashboard Pengajar</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Selamat datang kembali, {{ auth()->user()->name }}. Berikut ringkasan kelas dan tugas yang Anda ampu hari ini.</p>
-    </div>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">
+            Dashboard
+        </h2>
+    </x-slot>
 
+<div class="space-y-8 animate-fade-in">
     <!-- Stat Cards Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Stat Card 1 -->
@@ -73,24 +74,62 @@
     </div>
 
     <!-- Details Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Daily Schedule -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
             <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Jadwal Mengajar Hari Ini</h3>
             </div>
-            <div class="p-6 flex-1 divide-y divide-slate-100 dark:divide-slate-800/50">
+            <div class="p-6 flex-1 space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar">
                 @forelse($jadwalHariIni as $j)
-                    <div class="py-4 first:pt-0 last:pb-0 flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex flex-col items-center justify-center font-bold shrink-0 p-1 text-center">
-                            <span class="text-[10px] leading-tight">{{ $j->kelas->nama_kelas }}</span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <h4 class="text-sm font-semibold text-slate-805 dark:text-slate-200 truncate">{{ $j->mataPelajaran->nama_mapel }}</h4>
-                            <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-400 dark:text-slate-500">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                <span>{{ $j->jam_mulai ? \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') : '' }} - {{ $j->jam_selesai ? \Carbon\Carbon::parse($j->jam_selesai)->format('H:i') : '' }} WIB</span>
+                    @php
+                        $nowTime = now()->format('H:i');
+                        $isOngoing = false;
+                        if ($j->jam_mulai && $j->jam_selesai) {
+                            $start = \Carbon\Carbon::parse($j->jam_mulai)->format('H:i');
+                            $end = \Carbon\Carbon::parse($j->jam_selesai)->format('H:i');
+                            $isOngoing = ($nowTime >= $start && $nowTime <= $end);
+                        }
+                        
+                        // Deterministic colors & icons based on mapel ID
+                        $mapelId = $j->mata_pelajaran_id;
+                        if ($mapelId % 4 === 0) {
+                            $iconColor = 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+                            $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6l-6 6h6M9 17h10" /></svg>';
+                        } elseif ($mapelId % 4 === 1) {
+                            $iconColor = 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+                            $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>';
+                        } elseif ($mapelId % 4 === 2) {
+                            $iconColor = 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
+                            $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>';
+                        } else {
+                            $iconColor = 'bg-indigo-500/10 text-indigo-650 dark:bg-indigo-500/20 dark:text-indigo-400';
+                            $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>';
+                        }
+                    @endphp
+                    <div class="flex items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-300 {{ $isOngoing ? 'bg-blue-50/30 dark:bg-blue-500/5 border-blue-200 dark:border-blue-800/40 shadow-sm' : 'bg-slate-50/50 dark:bg-slate-900/50 border-slate-150 dark:border-slate-800/80' }}">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 {{ $iconColor }}">
+                                {!! $iconSvg !!}
                             </div>
+                            <div class="min-w-0">
+                                <h4 class="text-sm font-bold text-slate-805 dark:text-slate-200 truncate leading-snug">
+                                    {{ $j->mataPelajaran->nama_mapel }}
+                                </h4>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                                    {{ $j->kelas->nama_kelas }} • {{ $j->ruangan ?? 'Online' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 flex flex-col items-end">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-350 leading-none">
+                                {{ $j->jam_mulai ? \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') : '' }} - {{ $j->jam_selesai ? \Carbon\Carbon::parse($j->jam_selesai)->format('H:i') : '' }}
+                            </span>
+                            @if($isOngoing)
+                                <span class="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1.5">
+                                    Sedang Berlangsung
+                                </span>
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -100,7 +139,7 @@
         </div>
 
         <!-- Student Submission Logs -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm lg:col-span-2 overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
             <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Pengumpulan & Aktivitas Siswa</h3>
                 <span class="text-xxs font-semibold bg-emerald-500/10 text-emerald-650 px-2 py-0.5 rounded-full">{{ $aktivitasSiswa->count() }} Aktivitas Baru</span>
@@ -136,3 +175,4 @@
         </div>
     </div>
 </div>
+</x-app-layout>

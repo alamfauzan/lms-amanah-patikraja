@@ -12,7 +12,7 @@ class Kuis extends Model
     protected $table = 'kuis';
 
     protected $fillable = [
-        'kelas_id', 'guru_id', 'pertemuan_id', 'judul', 'deskripsi',
+        'kelas_id', 'mata_pelajaran_id', 'guru_id', 'pertemuan_id', 'judul', 'deskripsi',
         'durasi_menit', 'jumlah_soal', 'batas_pengerjaan', 'bobot_nilai',
         'mulai_at', 'selesai_at', 'is_aktif',
     ];
@@ -26,6 +26,11 @@ class Kuis extends Model
     public function kelas()
     {
         return $this->belongsTo(Kelas::class);
+    }
+
+    public function mataPelajaran()
+    {
+        return $this->belongsTo(MataPelajaran::class);
     }
 
     public function guru()

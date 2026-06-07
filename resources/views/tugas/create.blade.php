@@ -14,8 +14,22 @@
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Detail Tugas</h3>
                 <p class="text-sm text-slate-400 mt-0.5">Kelas: {{ $kelas->nama_kelas }}</p>
             </div>
-            <form method="POST" action="{{ route('kelas.tugas.store', $kelas->id) }}" class="px-8 py-6 space-y-5">
+            <form method="POST" action="{{ route('kelas.tugas.store', $kelas->id) }}" enctype="multipart/form-data" class="px-8 py-6 space-y-5"
+                  x-data="{ selectedMapel: '{{ old('mata_pelajaran_id', $preselectedMapelId) }}', meetings: {{ json_encode($kelas->pertemuan->map(fn($p) => ['id' => $p->id, 'urutan' => $p->urutan, 'judul' => $p->judul, 'mapel_id' => $p->mata_pelajaran_id])) }} }">
                 @csrf
+                <div>
+                    <label for="mata_pelajaran_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
+                    <select id="mata_pelajaran_id" name="mata_pelajaran_id" x-model="selectedMapel"
+                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition @error('mata_pelajaran_id') border-red-400 @enderror">
+                        <option value="">Pilih Mata Pelajaran</option>
+                        @foreach($mapels as $mapel)
+                            <option value="{{ $mapel->id }}">
+                                {{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('mata_pelajaran_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                </div>
                 <div>
                     <label for="judul" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Judul Tugas <span class="text-red-500">*</span></label>
                     <input type="text" id="judul" name="judul" value="{{ old('judul') }}" placeholder="Contoh: Latihan Soal Bab 1"
@@ -41,15 +55,19 @@
                     </div>
                 </div>
                 <div>
+                    <label for="file" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Lampiran Berkas Soal / Pendukung <span class="text-xs font-normal text-slate-400 dark:text-slate-500">(opsional)</span></label>
+                    <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
+                           class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                    <p class="text-[11px] text-slate-400 mt-1">Mendukung berkas PDF, Word, PPT, atau ZIP. Maksimal 10MB.</p>
+                </div>
+                <div>
                     <label for="pertemuan_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Pertemuan (opsional)</label>
                     <select id="pertemuan_id" name="pertemuan_id"
                             class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                         <option value="">-- Tidak terkait pertemuan --</option>
-                        @foreach($kelas->pertemuan as $p)
-                            <option value="{{ $p->id }}" {{ old('pertemuan_id') == $p->id ? 'selected' : '' }}>
-                                Pertemuan {{ $p->urutan }}: {{ $p->judul }}
-                            </option>
-                        @endforeach
+                        <template x-for="p in meetings.filter(m => m.mapel_id == selectedMapel)" :key="p.id">
+                            <option :value="p.id" x-text="`Pertemuan ${p.urutan}: ${p.judul}`" :selected="p.id == '{{ old('pertemuan_id') }}'"></option>
+                        </template>
                     </select>
                 </div>
                 <div class="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
