@@ -1,35 +1,37 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between gap-4 min-w-0">
-            <div class="flex items-center gap-2.5 min-w-0">
-                <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $kuis->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                </a>
-                <div class="min-w-0">
-                    <h2 class="font-bold text-sm sm:text-base md:text-lg text-slate-800 dark:text-slate-100 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-md md:max-w-xl" title="{{ $kuis->judul }}">{{ $kuis->judul }}</h2>
-                </div>
-            </div>
+    @php
+        $displayJudulKuis = $kuis->pertemuan ? 'Kuis Pertemuan ' . $kuis->pertemuan->urutan : $kuis->judul;
+    @endphp
 
-            @if(auth()->user()->hasAnyRole(['admin','guru']))
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ route('kelas.kuis.edit', [$kelas->id, $kuis->id]) }}"
-                       class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-slate-600 dark:text-slate-350 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200">
-                        Edit
-                    </a>
-                    <form action="{{ route('kelas.kuis.destroy', [$kelas->id, $kuis->id]) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kuis ini?')" class="inline">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-650 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/40 dark:border-red-900/40 transition duration-200">
-                            Hapus
-                        </button>
-                    </form>
-                </div>
-            @endif
+    <x-slot name="header">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $kuis->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div class="min-w-0">
+                <h2 class="font-bold text-sm sm:text-base md:text-lg text-slate-800 dark:text-slate-100 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-md md:max-w-xl" title="{{ $displayJudulKuis }}">{{ $displayJudulKuis }}</h2>
+            </div>
         </div>
     </x-slot>
 
     <div class="max-w-3xl mx-auto space-y-6">
+        {{-- Page Actions Row --}}
+        @if(auth()->user()->hasAnyRole(['admin','guru']))
+            <div class="flex justify-end gap-2 mb-2">
+                <a href="{{ route('kelas.kuis.edit', [$kelas->id, $kuis->id]) }}"
+                   class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200 shadow-sm">
+                    Edit
+                </a>
+                <form action="{{ route('kelas.kuis.destroy', [$kelas->id, $kuis->id]) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kuis ini?')" class="inline">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/40 dark:border-red-900/40 transition duration-200 shadow-sm">
+                        Hapus
+                    </button>
+                </form>
+            </div>
+        @endif
         @if(session('error'))
             <div class="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-455 rounded-xl text-sm font-semibold">
                 {{ session('error') }}
@@ -54,7 +56,7 @@
             </div>
 
             <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
-                {{ $kuis->judul }}
+                {{ $displayJudulKuis }}
             </h1>
 
             {{-- Stats Grid --}}
@@ -144,7 +146,7 @@
         @if($kuis->deskripsi)
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm p-6 space-y-4">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">Instruksi Kuis</h2>
-                <div class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-350 leading-relaxed text-sm">
+                <div class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-400 leading-relaxed text-sm">
                     {!! nl2br(e($kuis->deskripsi)) !!}
                 </div>
             </div>
@@ -155,6 +157,8 @@
             @php
                 $attemptsCount = \App\Models\HasilKuis::where(['kuis_id' => $kuis->id, 'siswa_id' => auth()->id()])->count();
                 $canAttempt = $attemptsCount < $kuis->batas_pengerjaan;
+                $nilaiDigunakan = $kuis->nilaiAkhirBySiswa(auth()->id());
+                $hasilDigunakan = $kuis->hasilNilaiBySiswa(auth()->id());
                 $isOpen = $kuis->is_aktif
                     && (!$kuis->mulai_at || now()->gte($kuis->mulai_at))
                     && (!$kuis->selesai_at || now()->lte($kuis->selesai_at));
@@ -190,7 +194,7 @@
                         <div class="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center text-center sm:w-36 shrink-0">
                             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Nilai Akhir</span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">{{ $hasilSiswa->nilai_akhir }}</span>
+                                <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">{{ $nilaiDigunakan }}</span>
                                 <span class="text-sm text-slate-400 font-semibold">/ 100</span>
                             </div>
                         </div>
@@ -208,6 +212,15 @@
                             <div class="flex items-center justify-between text-xs gap-4">
                                 <span class="text-slate-500 font-medium">Total percobaan</span>
                                 <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $attemptsCount }} / {{ $kuis->batas_pengerjaan }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs gap-4">
+                                <span class="text-slate-500 font-medium">Nilai diambil dari</span>
+                                <span class="font-semibold text-slate-700 dark:text-slate-200 text-right">
+                                    {{ $kuis->labelNilaiDiambilDari() }}
+                                    @if($hasilDigunakan && $kuis->nilai_diambil_dari !== 'rata_rata')
+                                        (#{{ $hasilDigunakan->attempt }})
+                                    @endif
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -264,6 +277,126 @@
             @endif
         @endif
 
+        {{-- Section: Daftar Pertanyaan (Guru / Admin Only) --}}
+        @if(auth()->user()->hasAnyRole(['admin','guru']))
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-805/50 pb-3">
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Daftar Pertanyaan Kuis</h3>
+                        <p class="text-xs text-slate-400 mt-1">Pratinjau butir soal, pilihan jawaban, dan kunci jawaban kuis ini.</p>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-900/50">
+                        {{ $kuis->soal->count() }} Soal
+                    </span>
+                </div>
+
+                @if($kuis->soal->isEmpty())
+                    <div class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">Kuis ini belum memiliki soal.</div>
+                @else
+                    <div class="space-y-6">
+                        @foreach($kuis->soal as $i => $soal)
+                            <div class="p-4 rounded-xl border border-slate-150 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/20 space-y-3.5">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 uppercase tracking-wider">
+                                        Soal #{{ $i + 1 }}
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500">Tipe: {{ str_replace('_', ' ', ucwords($soal->tipe)) }}</span>
+                                        <span class="text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-350 px-2 py-0.5 rounded">
+                                            {{ $soal->poin }} Poin
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {{-- Question Text --}}
+                                <div class="text-slate-800 dark:text-slate-200 font-semibold text-sm leading-relaxed">
+                                    {!! nl2br(e($soal->pertanyaan)) !!}
+                                </div>
+
+                                {{-- Question Image --}}
+                                @if(!empty($soal->gambar))
+                                    <div class="mt-2">
+                                        <img src="{{ asset('storage/' . $soal->gambar) }}"
+                                             alt="Gambar Soal"
+                                             class="max-h-48 w-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm object-contain cursor-zoom-in hover:opacity-90 transition"
+                                             onclick="
+                                                 const overlay = document.createElement('div');
+                                                 overlay.className = 'fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out';
+                                                 overlay.innerHTML = '<img src=\'' + this.src + '\' class=\'max-h-screen max-w-full rounded-xl shadow-2xl object-contain\'>';
+                                                 overlay.onclick = () => overlay.remove();
+                                                 document.body.appendChild(overlay);
+                                             ">
+                                    </div>
+                                @endif
+
+                                {{-- Options --}}
+                                @if($soal->tipe === 'pilihan_ganda')
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                        @foreach(['a', 'b', 'c', 'd'] as $optKey)
+                                            @if(isset($soal->pilihan_jawaban[$optKey]) && $soal->pilihan_jawaban[$optKey] !== '')
+                                                @php
+                                                    $isCorrect = strtolower(trim($soal->kunci_jawaban)) === $optKey;
+                                                @endphp
+                                                <div class="flex items-center gap-2.5 p-2.5 rounded-xl border text-xs
+                                                    {{ $isCorrect ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400' 
+                                                        : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400' }}">
+                                                    
+                                                    <div class="shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold
+                                                        {{ $isCorrect ? 'border-emerald-500 bg-emerald-500 text-white' 
+                                                            : 'border-slate-350 dark:border-slate-700 text-slate-400' }}">
+                                                        {{ strtoupper($optKey) }}
+                                                    </div>
+                                                    
+                                                    <span class="font-medium flex-1">{{ $soal->pilihan_jawaban[$optKey] }}</span>
+                                                    
+                                                    @if($isCorrect)
+                                                        <span class="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full shrink-0">Kunci</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+
+                                @elseif($soal->tipe === 'benar_salah')
+                                    <div class="grid grid-cols-2 gap-3 mt-2">
+                                        @foreach(['benar', 'salah'] as $optVal)
+                                            @php
+                                                $isCorrect = strtolower(trim($soal->kunci_jawaban)) === $optVal;
+                                            @endphp
+                                            <div class="flex items-center gap-2.5 p-2.5 rounded-xl border text-xs
+                                                {{ $isCorrect ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400' 
+                                                    : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400' }}">
+                                                
+                                                <div class="shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold
+                                                    {{ $isCorrect ? 'border-emerald-500 bg-emerald-500 text-white' 
+                                                        : 'border-slate-350 dark:border-slate-700 text-slate-400' }}">
+                                                    {{ $isCorrect ? '✓' : '' }}
+                                                </div>
+                                                
+                                                <span class="font-medium flex-1 capitalize">{{ $optVal }}</span>
+                                                
+                                                @if($isCorrect)
+                                                    <span class="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full shrink-0">Kunci</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                @elseif($soal->tipe === 'isian_singkat')
+                                    <div class="p-3 bg-indigo-50/40 dark:bg-indigo-950/10 border border-indigo-100 dark:border-indigo-900/30 rounded-xl text-xs flex items-center justify-between gap-4 mt-2">
+                                        <span class="text-slate-500 font-medium">Kunci Jawaban Isian:</span>
+                                        <span class="font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-100/60 dark:bg-indigo-900/30 px-2.5 py-1 rounded-lg">
+                                            {{ $soal->kunci_jawaban }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @endif
+
         {{-- Section 4: For Teacher / Admin --}}
         @if(auth()->user()->hasAnyRole(['admin','guru']))
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
@@ -293,7 +426,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/50 text-xs">
                                 @foreach($semuaHasil as $hasil)
-                                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-850/20 transition duration-150">
+                                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition duration-150">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-2.5">
                                                 <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-[10px] shrink-0">

@@ -82,7 +82,7 @@
                                     </a>
                                     <form method="POST" action="{{ route('kelas.destroy', $kelas->id) }}" onsubmit="return confirm('Yakin ingin menghapus kelas ini?')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+                                        <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
@@ -98,7 +98,7 @@
                             
                             @if(auth()->user()->hasRole('siswa'))
                                 <div class="mt-5 space-y-2">
-                                    <div class="flex justify-between text-xxs font-bold text-slate-450">
+                                    <div class="flex justify-between text-xxs font-bold text-slate-400">
                                         <span>Progress Belajar</span>
                                         <span>{{ $progress }}%</span>
                                     </div>
@@ -108,18 +108,18 @@
                                 </div>
                             @else
                                 <div class="mt-5 space-y-1.5">
-                                    <div class="flex justify-between text-xxs font-bold text-slate-450">
+                                    <div class="flex justify-between text-xxs font-bold text-slate-400">
                                         <span>Tahun Ajaran</span>
                                         <span>{{ $kelas->tahun_ajaran }}</span>
                                     </div>
-                                    <div class="flex justify-between text-xxs font-bold text-slate-450">
+                                    <div class="flex justify-between text-xxs font-bold text-slate-400">
                                         <span>Jumlah Siswa</span>
                                         <span>{{ $kelas->siswa_count }} Siswa</span>
                                     </div>
                                 </div>
                             @endif
                         </div>
-                        <a href="{{ route('kelas.show', $kelas->id) }}" class="px-6 py-3.5 bg-slate-50 dark:bg-slate-900/50 hover:bg-blue-500/5 text-center text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 border-t border-slate-150 dark:border-slate-800/80 transition-all duration-200">
+                        <a href="{{ route('kelas.show', $kelas->id) }}" class="px-6 py-3.5 bg-slate-50 dark:bg-slate-900/50 hover:bg-blue-500/5 text-center text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 border-t border-slate-200 dark:border-slate-800/80 transition-all duration-200">
                             Masuk Kelas
                         </a>
                     </div>

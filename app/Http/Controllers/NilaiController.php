@@ -79,12 +79,8 @@ class NilaiController extends Controller
             $countKuis = 0;
 
             foreach ($kuisList as $kuis) {
-                $hasil = HasilKuis::where('kuis_id', $kuis->id)
-                    ->where('siswa_id', $siswa->id)
-                    ->where('is_submitted', true)
-                    ->orderByDesc('attempt')
-                    ->first();
-                $nilai = $hasil?->nilai_akhir;
+                $hasil = $kuis->hasilNilaiBySiswa($siswa->id);
+                $nilai = $kuis->nilaiAkhirBySiswa($siswa->id);
                 $nilaiKuis[$kuis->id] = [
                     'nilai'   => $nilai,
                     'attempt' => $hasil?->attempt,
@@ -123,44 +119,61 @@ class NilaiController extends Controller
         if (!$user->hasRole('siswa')) abort(403);
 
         // Ambil semua kelas yang diikuti siswa
-        $kelasList = $user->kelasDiikuti()->with(['tugas', 'kuis'])->get();
+        $kelasList = $user->kelasDiikuti()->with(['kelasMapelGuru.mataPelajaran', 'kelasMapelGuru.guru'])->get();
 
         $rekapKelas = $kelasList->map(function ($kelas) use ($user) {
-            // Tugas
-            $tugasData = $kelas->tugas->map(function ($tugas) use ($user) {
-                $pengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
-                    ->where('siswa_id', $user->id)
-                    ->first();
-                return [
-                    'tugas'  => $tugas,
-                    'nilai'  => $pengumpulan?->nilai,
-                    'status' => $pengumpulan?->status,
-                ];
-            });
+            // Group by subject in this class
+            $mapelList = $kelas->kelasMapelGuru->map(function ($kmg) use ($kelas, $user) {
+                $mapel = $kmg->mataPelajaran;
+                $guru = $kmg->guru;
 
-            // Kuis
-            $kuisData = $kelas->kuis->map(function ($kuis) use ($user) {
-                $hasil = HasilKuis::where('kuis_id', $kuis->id)
-                    ->where('siswa_id', $user->id)
-                    ->where('is_submitted', true)
-                    ->orderByDesc('attempt')
-                    ->first();
-                return [
-                    'kuis'  => $kuis,
-                    'nilai' => $hasil?->nilai_akhir,
-                ];
-            });
+                if (!$mapel) return null;
 
-            $nilaiTugas = $tugasData->pluck('nilai')->filter()->values();
-            $nilaiKuis  = $kuisData->pluck('nilai')->filter()->values();
-            $semua = $nilaiTugas->concat($nilaiKuis)->filter();
-            $rataRata = $semua->count() > 0 ? round($semua->average(), 1) : null;
+                // Tasks for this mapel
+                $tugasQuery = Tugas::where('kelas_id', $kelas->id)
+                    ->where('mata_pelajaran_id', $mapel->id)
+                    ->get();
+
+                $tugasData = $tugasQuery->map(function ($tugas) use ($user) {
+                    $pengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
+                        ->where('siswa_id', $user->id)
+                        ->first();
+                    return [
+                        'tugas'  => $tugas,
+                        'nilai'  => $pengumpulan?->nilai,
+                        'status' => $pengumpulan?->status,
+                    ];
+                });
+
+                // Quizzes for this mapel
+                $kuisQuery = Kuis::where('kelas_id', $kelas->id)
+                    ->where('mata_pelajaran_id', $mapel->id)
+                    ->get();
+
+                $kuisData = $kuisQuery->map(function ($kuis) use ($user) {
+                    return [
+                        'kuis'  => $kuis,
+                        'nilai' => $kuis->nilaiAkhirBySiswa($user->id),
+                    ];
+                });
+
+                $nilaiTugas = $tugasData->pluck('nilai')->filter(fn($v) => !is_null($v))->values();
+                $nilaiKuis  = $kuisData->pluck('nilai')->filter(fn($v) => !is_null($v))->values();
+                $semua = $nilaiTugas->concat($nilaiKuis);
+                $rataRata = $semua->count() > 0 ? round($semua->average(), 1) : null;
+
+                return [
+                    'mata_pelajaran' => $mapel,
+                    'guru'           => $guru,
+                    'tugas'          => $tugasData,
+                    'kuis'           => $kuisData,
+                    'rata_rata'      => $rataRata,
+                ];
+            })->filter()->values();
 
             return [
-                'kelas'     => $kelas,
-                'tugas'     => $tugasData,
-                'kuis'      => $kuisData,
-                'rata_rata' => $rataRata,
+                'kelas'      => $kelas,
+                'mapel_list' => $mapelList,
             ];
         });
 
@@ -211,10 +224,9 @@ class NilaiController extends Controller
 
                 $nilaiKuis = [];
                 foreach ($kuisList as $kuis) {
-                    $h = HasilKuis::where(['kuis_id' => $kuis->id, 'siswa_id' => $siswa->id, 'is_submitted' => true])
-                        ->orderByDesc('attempt')->first();
-                    $nilaiKuis[] = $h?->nilai_akhir ?? '-';
-                    $row[] = $h?->nilai_akhir ?? '-';
+                    $nilai = $kuis->nilaiAkhirBySiswa($siswa->id);
+                    $nilaiKuis[] = $nilai ?? '-';
+                    $row[] = $nilai ?? '-';
                 }
 
                 $rtgs = collect($nilaiTugas)->filter(fn($v) => is_numeric($v));

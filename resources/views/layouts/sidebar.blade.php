@@ -19,9 +19,6 @@
         $menus = [
             ['name' => 'Dashboard',  'route' => 'dashboard',    'icon' => 'grid'],
             ['name' => 'Kelas Saya', 'route' => 'kelas.index',  'icon' => 'book-open'],
-            ['name' => 'Materi',     'route' => 'kelas.index',  'icon' => 'book-open'],
-            ['name' => 'Tugas',      'route' => 'tugas.index',  'icon' => 'clipboard-list'],
-            ['name' => 'Kuis',       'route' => 'kuis.index',   'icon' => 'puzzle'],
             ['name' => 'Jadwal',     'route' => 'jadwal.index', 'icon' => 'calendar'],
             ['name' => 'Nilai',      'route' => 'nilai.guru',   'icon' => 'star'],
         ];
@@ -53,7 +50,7 @@
            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
            sidebarCollapsed ? 'md:w-20' : 'md:w-64'
        ]"
-       class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#1c1c1e] text-slate-350 transition-all duration-300 ease-in-out md:translate-x-0 md:fixed md:top-4 md:left-4 md:bottom-4 md:h-auto md:rounded-2xl border-r border-zinc-800 md:border md:border-zinc-800/60 shadow-2xl overflow-hidden shrink-0">
+       class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#1c1c1e] text-slate-400 transition-all duration-300 ease-in-out md:translate-x-0 md:fixed md:top-4 md:left-4 md:bottom-4 md:h-auto md:rounded-2xl border-r border-zinc-800 md:border md:border-zinc-800/60 shadow-2xl overflow-hidden shrink-0">
     
     <!-- Brand Header -->
     <div :class="sidebarCollapsed ? 'md:px-2 md:justify-center' : 'md:px-6 md:justify-between'"

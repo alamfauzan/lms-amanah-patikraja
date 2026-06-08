@@ -48,7 +48,7 @@
                                 <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-350">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-400">
                             @foreach($years as $year)
                                 <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
                                     <td class="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">

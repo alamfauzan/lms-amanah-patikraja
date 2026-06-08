@@ -69,6 +69,7 @@ class MateriKuisTest extends TestCase
         // 4. Create Pertemuan
         $this->pertemuan = Pertemuan::create([
             'kelas_id' => $this->kelas->id,
+            'mata_pelajaran_id' => $this->mapel->id,
             'judul' => 'Pertemuan 1 Aljabar',
             'urutan' => 1,
             'deskripsi' => 'Belajar aljabar dasar',
@@ -86,7 +87,7 @@ class MateriKuisTest extends TestCase
                 'konten' => 'Aljabar adalah ilmu matematika tentang huruf dan simbol.',
             ]);
 
-        $response->assertRedirect(route('kelas.pertemuan.show', [$this->kelas->id, $this->pertemuan->id]));
+        $response->assertRedirect(route('kelas.pertemuan.index', [$this->kelas->id, 'mapel_id' => $this->mapel->id]));
         $this->assertDatabaseHas('materi', [
             'judul' => 'Pengenalan Aljabar',
             'tipe' => 'teks',
@@ -110,8 +111,10 @@ class MateriKuisTest extends TestCase
             ->post(route('kelas.kuis.store', $this->kelas->id), [
                 'judul' => 'Kuis Aljabar Dasar',
                 'deskripsi' => 'Kerjakan dengan teliti',
+                'mata_pelajaran_id' => $this->mapel->id,
                 'durasi_menit' => 10,
                 'batas_pengerjaan' => 2,
+                'nilai_diambil_dari' => 'terakhir',
                 'bobot_nilai' => 100,
                 'pertemuan_id' => $this->pertemuan->id,
                 'is_aktif' => 1,
@@ -143,7 +146,7 @@ class MateriKuisTest extends TestCase
                 ]
             ]);
 
-        $response->assertRedirect(route('kelas.kuis.index', $this->kelas->id));
+        $response->assertRedirect(route('kelas.pertemuan.index', [$this->kelas->id, 'mapel_id' => $this->mapel->id]));
         $this->assertDatabaseHas('kuis', [
             'judul' => 'Kuis Aljabar Dasar',
             'jumlah_soal' => 3,
@@ -235,7 +238,7 @@ class MateriKuisTest extends TestCase
         $response = $this->actingAs($this->guru)
             ->get(route('kuis.show', [$this->kelas->id, $kuis->id]));
         $response->assertStatus(200);
-        $response->assertSee('Hasil Percobaan Siswa');
+        $response->assertSee('Hasil Pengerjaan Siswa');
         $response->assertSee('Siswa Test');
         $response->assertSee('100');
     }
@@ -257,7 +260,7 @@ class MateriKuisTest extends TestCase
             ->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Dashboard Pengajar');
+        $response->assertSee('Dashboard');
         $response->assertSee('Kelas Diajar');
         $response->assertSee('Total Siswa');
         $response->assertSee('Tugas Aktif');

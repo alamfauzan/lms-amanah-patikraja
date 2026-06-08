@@ -1,8 +1,12 @@
 <x-app-layout>
+    @php
+        $displayJudulKuis = $kuis->pertemuan ? 'Kuis Pertemuan ' . $kuis->pertemuan->urutan : $kuis->judul;
+    @endphp
+
     <x-slot name="header">
         <div class="flex items-center gap-3">
             <div>
-                <h2 class="font-bold text-lg text-slate-850 dark:text-slate-100">{{ $kuis->judul }}</h2>
+                <h2 class="font-bold text-lg text-slate-850 dark:text-slate-100">{{ $displayJudulKuis }}</h2>
             </div>
         </div>
     </x-slot>
@@ -164,7 +168,7 @@
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
                     <div class="px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
-                        <span class="text-xs font-bold text-indigo-650 dark:text-indigo-400 uppercase tracking-wide">
+                        <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
                             Pertanyaan <span x-text="activeQuestionIndex + 1"></span> dari <span x-text="questionsCount"></span>
                         </span>
                         <span class="text-[10px] text-slate-400">Poin Soal: <span x-text="document.querySelector('[data-soal-index=\'' + activeQuestionIndex + '\']')?.dataset.poin || '0'"></span> Poin</span>
@@ -183,13 +187,29 @@
                                     {!! nl2br(e($soal->pertanyaan)) !!}
                                 </div>
 
+                                @if(!empty($soal->gambar))
+                                    {{-- Gambar Soal --}}
+                                    <div class="mt-4">
+                                        <img src="{{ asset('storage/' . $soal->gambar) }}"
+                                             alt="Gambar Soal {{ $i + 1 }}"
+                                             class="max-h-72 w-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm object-contain cursor-zoom-in transition hover:opacity-90"
+                                             onclick="
+                                                 const overlay = document.createElement('div');
+                                                 overlay.className = 'fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out';
+                                                 overlay.innerHTML = '<img src=\'' + this.src + '\' class=\'max-h-screen max-w-full rounded-xl shadow-2xl object-contain\'>';
+                                                 overlay.onclick = () => overlay.remove();
+                                                 document.body.appendChild(overlay);
+                                             ">
+                                    </div>
+                                @endif
+
                                 <!-- Answers Choices -->
                                 @if($soal->tipe === 'pilihan_ganda')
                                     <div class="grid grid-cols-1 gap-3">
                                         @foreach(['a', 'b', 'c', 'd'] as $optKey)
                                             @if(isset($soal->pilihan_jawaban[$optKey]) && $soal->pilihan_jawaban[$optKey] !== '')
-                                                <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition duration-150"
-                                                       :class="answers['{{ $soal->id }}'] === '{{ $optKey }}' ? 'border-indigo-650 dark:border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10' : 'border-slate-200 dark:border-slate-800/80'">
+                                                <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition duration-150"
+                                                       :class="answers['{{ $soal->id }}'] === '{{ $optKey }}' ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10' : 'border-slate-200 dark:border-slate-800/80'">
                                                     <input type="radio" name="jawaban_{{ $soal->id }}" value="{{ $optKey }}"
                                                            x-model="answers['{{ $soal->id }}']" @change="saveAnswer('{{ $soal->id }}')"
                                                            class="text-indigo-600 border-slate-350 dark:border-slate-800 focus:ring-indigo-500 shrink-0">
@@ -203,8 +223,8 @@
                                 @elseif($soal->tipe === 'benar_salah')
                                     <div class="grid grid-cols-2 gap-4">
                                         @foreach(['benar', 'salah'] as $optVal)
-                                            <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition duration-150"
-                                                   :class="answers['{{ $soal->id }}'] === '{{ $optVal }}' ? 'border-indigo-650 dark:border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10' : 'border-slate-200 dark:border-slate-800/80'">
+                                            <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition duration-150"
+                                                   :class="answers['{{ $soal->id }}'] === '{{ $optVal }}' ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10' : 'border-slate-200 dark:border-slate-800/80'">
                                                 <input type="radio" name="jawaban_{{ $soal->id }}" value="{{ $optVal }}"
                                                        x-model="answers['{{ $soal->id }}']" @change="saveAnswer('{{ $soal->id }}')"
                                                        class="text-indigo-600 border-slate-350 dark:border-slate-800 focus:ring-indigo-500 shrink-0">
@@ -217,7 +237,7 @@
                                     <div class="space-y-2">
                                         <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Jawaban Singkat Anda:</label>
                                         <input type="text" x-model="answers['{{ $soal->id }}']" @change="saveAnswer('{{ $soal->id }}')"
-                                               class="w-full px-4 py-3 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+                                               class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
                                                placeholder="Ketikkan jawaban Anda disini...">
                                     </div>
                                 @endif
@@ -229,7 +249,7 @@
                     <div class="px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between gap-4">
                         <button type="button" @click="if (activeQuestionIndex > 0) activeQuestionIndex--"
                                 :disabled="activeQuestionIndex === 0"
-                                class="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
+                                class="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
                             Sebelumnya
                         </button>
 
@@ -283,7 +303,7 @@
                         @endforeach
                     </div>
 
-                    <div class="pt-4 mt-4 border-t border-slate-150 dark:border-slate-850 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
+                    <div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
                         <div class="flex items-center gap-1">
                             <span class="w-3.5 h-3.5 bg-indigo-600 rounded-md block"></span>
                             <span>Sudah Diisi</span>

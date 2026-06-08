@@ -61,7 +61,7 @@
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
             <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-violet-500/5 group-hover:bg-violet-500/10 rounded-full transition-colors duration-300"></div>
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-650 dark:text-violet-405 flex items-center justify-center font-semibold shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
@@ -78,9 +78,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- System Activity Log -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
-            <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800 flex items-center justify-between">
+            <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Log Aktivitas Terbaru</h3>
-                <span class="text-xxs font-bold text-indigo-650 bg-indigo-500/10 px-2.5 py-1 rounded-full uppercase">Realtime</span>
+                <span class="text-xxs font-bold text-indigo-600 bg-indigo-500/10 px-2.5 py-1 rounded-full uppercase">Realtime</span>
             </div>
             <div class="p-6">
                 <div class="flow-root">
@@ -99,7 +99,7 @@
                                         </div>
                                         <div class="flex-1 min-w-0 pt-1.5 flex justify-between space-x-4">
                                             <div>
-                                                <p class="text-sm text-slate-650 dark:text-slate-350">
+                                                <p class="text-sm text-slate-650 dark:text-slate-400">
                                                     {!! $log['text'] !!}
                                                 </p>
                                             </div>
@@ -120,13 +120,13 @@
 
         <!-- System Usage Stat -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
-            <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800">
+            <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Status & Kapasitas</h3>
             </div>
             <div class="p-6 flex-1 flex flex-col gap-6">
                 <!-- Status Row 1 -->
                 <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-450">
+                    <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <span>Penggunaan Storage</span>
                         <span>4.2 GB / 10 GB</span>
                     </div>
@@ -137,7 +137,7 @@
 
                 <!-- Status Row 2 -->
                 <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-450">
+                    <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <span>Beban Server CPU</span>
                         <span>24%</span>
                     </div>
@@ -148,7 +148,7 @@
 
                 <!-- Status Row 3 -->
                 <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-450">
+                    <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <span>Penggunaan Memory RAM</span>
                         <span>68%</span>
                     </div>
@@ -157,7 +157,7 @@
                     </div>
                 </div>
             </div>
-            <div class="px-6 py-4.5 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-150 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div class="px-6 py-4.5 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>Versi Laravel: 10.x</span>
                 <span>PHP: 8.x</span>
             </div>

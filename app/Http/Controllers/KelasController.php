@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\MataPelajaran;
 use App\Models\KelasMapelGuru;
 use App\Models\TahunAjaran;
+use App\Models\Jadwal;
 
 class KelasController extends Controller
 {
@@ -113,7 +114,13 @@ class KelasController extends Controller
             $allSubjects = MataPelajaran::all();
         }
 
-        return view('kelas.show', compact('kelas', 'allTeachers', 'allStudents', 'allSubjects'));
+        // Jadwal kelas ini — group by mata_pelajaran_id
+        $jadwalKelas = Jadwal::where('kelas_id', $id)
+            ->orderBy('hari')->orderBy('jam_mulai')
+            ->get()
+            ->groupBy('mata_pelajaran_id');
+
+        return view('kelas.show', compact('kelas', 'allTeachers', 'allStudents', 'allSubjects', 'jadwalKelas'));
     }
 
     /**

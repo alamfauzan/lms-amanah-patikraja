@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('kelas.kuis.index', $kelas->id) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $preselectedMapelId ?? '']) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </a>
             <div>
@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="max-w-4xl mx-auto">
-        <form action="{{ route('kelas.kuis.store', $kelas->id) }}" method="POST" class="space-y-6"
+        <form action="{{ route('kelas.kuis.store', $kelas->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6"
               x-data="{
                   selectedMapel: '{{ old('mata_pelajaran_id', $preselectedMapelId) }}',
                   meetings: {{ json_encode($kelas->pertemuan->map(fn($p) => ['id' => $p->id, 'urutan' => $p->urutan, 'judul' => $p->judul, 'mapel_id' => $p->mata_pelajaran_id])) }},
@@ -51,85 +51,128 @@
             <!-- Pengaturan Umum -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-slate-100 dark:border-slate-800/50">
-                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">⚙️ Pengaturan Umum Kuis</h3>
-                    <p class="text-xs text-slate-400 mt-1">Konfigurasi pengaturan utama untuk kuis.</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100">Pengaturan Umum Kuis</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Konfigurasi pengaturan utama untuk kuis.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="p-6 space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Mata Pelajaran -->
-                        <div class="md:col-span-2">
-                            <label for="mata_pelajaran_id" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
-                            <select name="mata_pelajaran_id" id="mata_pelajaran_id" required x-model="selectedMapel"
-                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
-                                <option value="">Pilih Mata Pelajaran</option>
-                                @foreach($mapels as $mapel)
-                                    <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        @if($preselectedMapelId)
+                            <input type="hidden" name="mata_pelajaran_id" value="{{ $preselectedMapelId }}">
+                            <div class="md:col-span-2">
+                                <span class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Mata Pelajaran</span>
+                                @php $selectedMapelObj = $mapels->firstWhere('id', $preselectedMapelId); @endphp
+                                <div class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 font-medium text-sm">
+                                    {{ $selectedMapelObj ? $selectedMapelObj->nama_mapel . ' (' . $selectedMapelObj->kode_mapel . ')' : 'Mata Pelajaran' }}
+                                </div>
+                            </div>
+                        @else
+                            <div class="md:col-span-2">
+                                <label for="mata_pelajaran_id" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
+                                <select name="mata_pelajaran_id" id="mata_pelajaran_id" required x-model="selectedMapel"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                    <option value="">Pilih Mata Pelajaran</option>
+                                    @foreach($mapels as $mapel)
+                                        <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
 
                         <!-- Judul -->
                         <div class="md:col-span-2">
-                            <label for="judul" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Judul Kuis <span class="text-red-500">*</span></label>
+                            <label for="judul" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Judul Kuis <span class="text-red-500">*</span></label>
                             <input type="text" name="judul" id="judul" required value="{{ old('judul') }}"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
                                    placeholder="Contoh: Evaluasi Tengah Bab 1">
                         </div>
 
                         <!-- Deskripsi -->
                         <div class="md:col-span-2">
-                            <label for="deskripsi" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Deskripsi Kuis</label>
+                            <label for="deskripsi" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Deskripsi Kuis</label>
                             <textarea name="deskripsi" id="deskripsi" rows="3"
-                                      class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+                                      class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
                                       placeholder="Tuliskan petunjuk pengerjaan di sini...">{{ old('deskripsi') }}</textarea>
                         </div>
 
                         <!-- Durasi Menit -->
                         <div>
-                            <label for="durasi_menit" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Durasi (Menit) <span class="text-red-500">*</span></label>
+                            <label for="durasi_menit" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Durasi (Menit) <span class="text-red-500">*</span></label>
                             <input type="number" name="durasi_menit" id="durasi_menit" required min="1" value="{{ old('durasi_menit', 60) }}"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                         </div>
 
                         <!-- Batas Pengerjaan (Attempt) -->
                         <div>
-                            <label for="batas_pengerjaan" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Maksimal Percobaan <span class="text-red-500">*</span></label>
+                            <label for="batas_pengerjaan" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Maksimal Percobaan <span class="text-red-500">*</span></label>
                             <input type="number" name="batas_pengerjaan" id="batas_pengerjaan" required min="1" value="{{ old('batas_pengerjaan', 1) }}"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                        </div>
+
+                        <!-- Nilai Diambil Dari -->
+                        <div>
+                            <label for="nilai_diambil_dari" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Nilai Diambil Dari <span class="text-red-500">*</span></label>
+                            <select name="nilai_diambil_dari" id="nilai_diambil_dari" required
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                <option value="terakhir" @selected(old('nilai_diambil_dari', 'terakhir') === 'terakhir')>Percobaan terakhir</option>
+                                <option value="tertinggi" @selected(old('nilai_diambil_dari') === 'tertinggi')>Nilai tertinggi</option>
+                                <option value="rata_rata" @selected(old('nilai_diambil_dari') === 'rata_rata')>Rata-rata semua percobaan</option>
+                            </select>
                         </div>
 
                         <!-- Bobot Nilai -->
                         <div>
-                            <label for="bobot_nilai" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Bobot Nilai (%) <span class="text-red-500">*</span></label>
+                            <label for="bobot_nilai" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Bobot Nilai (%) <span class="text-red-500">*</span></label>
                             <input type="number" name="bobot_nilai" id="bobot_nilai" required min="0" max="100" value="{{ old('bobot_nilai', 100) }}"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                         </div>
 
                         <!-- Hubungkan ke Pertemuan -->
-                        <div>
-                            <label for="pertemuan_id" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Tautkan Pertemuan</label>
-                            <select name="pertemuan_id" id="pertemuan_id"
-                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
-                                <option value="">-- Umum (Tidak ditautkan) --</option>
-                                <template x-for="p in meetings.filter(m => m.mapel_id == selectedMapel)" :key="p.id">
-                                    <option :value="p.id" x-text="`Pertemuan ${p.urutan}: ${p.judul}`" :selected="p.id == '{{ old('pertemuan_id') }}'"></option>
-                                </template>
-                            </select>
-                        </div>
+                        @if($preselectedPertemuanId)
+                            <input type="hidden" name="pertemuan_id" value="{{ $preselectedPertemuanId }}">
+                            <div>
+                                <span class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Ditautkan ke Pertemuan</span>
+                                @php $selectedPertemuanObj = $pertemuan->firstWhere('id', $preselectedPertemuanId); @endphp
+                                <div class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 font-medium text-sm">
+                                    {{ $selectedPertemuanObj ? 'Pertemuan ' . $selectedPertemuanObj->urutan . ': ' . $selectedPertemuanObj->judul : 'Pertemuan' }}
+                                </div>
+                            </div>
+                        @else
+                            <div>
+                                <label for="pertemuan_id" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Tautkan Pertemuan</label>
+                                <select name="pertemuan_id" id="pertemuan_id"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                    <option value="">-- Umum (Tidak ditautkan) --</option>
+                                    <template x-for="p in meetings.filter(m => m.mapel_id == selectedMapel)" :key="p.id">
+                                        <option :value="p.id" x-text="`Pertemuan ${p.urutan}: ${p.judul}`" :selected="p.id == '{{ old('pertemuan_id') }}'"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        @endif
 
                         <!-- Jadwal Mulai -->
                         <div>
-                            <label for="mulai_at" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Jadwal Mulai</label>
+                            <label for="mulai_at" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Jadwal Mulai</label>
                             <input type="datetime-local" name="mulai_at" id="mulai_at" value="{{ old('mulai_at') }}"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                         </div>
 
                         <!-- Jadwal Selesai -->
                         <div>
-                            <label for="selesai_at" class="block text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">Jadwal Selesai</label>
+                            <label for="selesai_at" class="block text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2">Jadwal Selesai</label>
                             <input type="datetime-local" name="selesai_at" id="selesai_at" value="{{ old('selesai_at') }}"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                         </div>
                     </div>
 
@@ -145,9 +188,16 @@
             <!-- Pembuat Soal -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
-                    <div>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">✏️ Pertanyaan Kuis</h3>
-                        <p class="text-xs text-slate-400 mt-1">Buat daftar pertanyaan, pilihan jawaban, kunci jawaban, dan alokasi poin.</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100">Pertanyaan Kuis</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Buat daftar pertanyaan, pilihan jawaban, kunci jawaban, dan alokasi poin.</p>
+                        </div>
                     </div>
                     <button type="button" @click="addQuestion()"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg transition duration-200">
@@ -160,11 +210,11 @@
                     <template x-for="(q, index) in questions" :key="index">
                         <div class="pt-6 first:pt-0 space-y-4">
                             <div class="flex items-center justify-between gap-4">
-                                <span class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0" x-text="index + 1"></span>
+                                <span class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0" x-text="index + 1"></span>
 
                                 <div class="flex items-center gap-2">
                                     <!-- Pilihan Tipe Soal -->
-                                    <div class="inline-flex rounded-lg p-0.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-850">
+                                    <div class="inline-flex rounded-lg p-0.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                                         <button type="button" @click="changeType(index, 'pilihan_ganda')"
                                                 :class="q.tipe === 'pilihan_ganda' ? 'bg-white dark:bg-slate-800 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-750 dark:hover:text-slate-300'"
                                                 class="px-2.5 py-1 text-[10px] font-bold rounded transition-all">
@@ -194,10 +244,62 @@
 
                             <!-- Pertanyaan -->
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">Pertanyaan <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-400 mb-1.5">Pertanyaan <span class="text-red-500">*</span></label>
                                 <textarea :name="`soal[${index}][pertanyaan]`" x-model="q.pertanyaan" required rows="2"
-                                          class="w-full px-4 py-2 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+                                          class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
                                           placeholder="Contoh: Apa ibukota negara Indonesia?"></textarea>
+                            </div>
+
+                            <!-- Gambar Soal (Opsional) -->
+                            <div x-data="{ previewUrl: q.existingGambar || null, fileName: '' }">
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-400 mb-1.5">
+                                    Gambar Soal
+                                    <span class="normal-case font-normal text-slate-400 ml-1">(opsional • maks 2MB • JPG/PNG/GIF/WebP)</span>
+                                </label>
+                                <div class="flex items-start gap-3">
+                                    <!-- Image Preview -->
+                                    <template x-if="previewUrl">
+                                        <div class="relative shrink-0">
+                                            <img :src="previewUrl" alt="Preview" class="w-28 h-20 object-cover rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                            <button type="button"
+                                                    @click="previewUrl = null; fileName = ''; $refs.fileInput.value = '';"
+                                                    class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow hover:bg-red-600 transition">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </template>
+
+                                    <!-- Upload Area -->
+                                    <label :for="`gambar-input-${index}`"
+                                           class="flex-1 flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors"
+                                           :class="previewUrl ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50/30 dark:bg-indigo-950/10' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600'">
+                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                             :class="previewUrl ? 'bg-indigo-500/10 text-indigo-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-semibold text-slate-600 dark:text-slate-400" x-text="fileName || (previewUrl ? 'Ganti gambar...' : 'Klik untuk unggah gambar')"></p>
+                                            <p class="text-[10px] text-slate-400 mt-0.5">JPG, PNG, GIF, WebP</p>
+                                        </div>
+                                        <input type="file"
+                                               :id="`gambar-input-${index}`"
+                                               :name="`gambar[${index}]`"
+                                               accept="image/jpeg,image/png,image/gif,image/webp"
+                                               class="hidden"
+                                               x-ref="fileInput"
+                                               @change="
+                                                   const file = $event.target.files[0];
+                                                   if (file) {
+                                                       fileName = file.name;
+                                                       const reader = new FileReader();
+                                                       reader.onload = e => previewUrl = e.target.result;
+                                                       reader.readAsDataURL(file);
+                                                   }
+                                               ">
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Opsi Pilihan Ganda -->
@@ -205,22 +307,22 @@
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Pilihan A</label>
                                     <input type="text" :name="`soal[${index}][pilihan_jawaban][a]`" x-model="q.pilihan.a" :required="q.tipe === 'pilihan_ganda'"
-                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Pilihan B</label>
                                     <input type="text" :name="`soal[${index}][pilihan_jawaban][b]`" x-model="q.pilihan.b" :required="q.tipe === 'pilihan_ganda'"
-                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Pilihan C</label>
                                     <input type="text" :name="`soal[${index}][pilihan_jawaban][c]`" x-model="q.pilihan.c" :required="q.tipe === 'pilihan_ganda'"
-                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Pilihan D</label>
                                     <input type="text" :name="`soal[${index}][pilihan_jawaban][d]`" x-model="q.pilihan.d" :required="q.tipe === 'pilihan_ganda'"
-                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                           class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                 </div>
                             </div>
 
@@ -228,11 +330,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Kunci Jawaban (Dynamic input based on Type) -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">Kunci Jawaban <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-400 mb-1.5">Kunci Jawaban <span class="text-red-500">*</span></label>
 
                                     <!-- Kunci PG -->
                                     <select :name="`soal[${index}][kunci_jawaban]`" x-show="q.tipe === 'pilihan_ganda'" x-model="q.kunci_jawaban"
-                                            class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                         <option value="a">Pilihan A</option>
                                         <option value="b">Pilihan B</option>
                                         <option value="c">Pilihan C</option>
@@ -241,22 +343,22 @@
 
                                     <!-- Kunci Benar / Salah -->
                                     <select :name="`soal[${index}][kunci_jawaban]`" x-show="q.tipe === 'benar_salah'" x-model="q.kunci_jawaban"
-                                            class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                         <option value="benar">Benar</option>
                                         <option value="salah">Salah</option>
                                     </select>
 
                                     <!-- Kunci Isian Singkat -->
                                     <input type="text" :name="`soal[${index}][kunci_jawaban]`" x-show="q.tipe === 'isian_singkat'" x-model="q.kunci_jawaban" :required="q.tipe === 'isian_singkat'"
-                                           class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+                                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
                                            placeholder="Kunci jawaban persis (Huruf kecil/besar tidak sensitif)">
                                 </div>
 
                                 <!-- Alokasi Poin -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">Alokasi Poin Soal <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-400 mb-1.5">Alokasi Poin Soal <span class="text-red-500">*</span></label>
                                     <input type="number" :name="`soal[${index}][poin]`" x-model="q.poin" required min="1"
-                                           class="w-full px-4 py-2.5 rounded-xl border border-slate-250 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
+                                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200">
                                 </div>
                             </div>
                         </div>
@@ -267,7 +369,7 @@
                 <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
                     <span class="text-xs text-slate-400">Poin total akan dihitung dari jumlah poin per soal.</span>
                     <button type="button" @click="addQuestion()"
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition duration-200">
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition duration-200">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         Tambah Soal
                     </button>
@@ -276,12 +378,12 @@
 
             <!-- Submit Buttons -->
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('kelas.kuis.index', $kelas->id) }}"
-                   class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-650 dark:text-slate-450 text-sm font-semibold transition duration-200">
+                <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $preselectedMapelId ?? '']) }}"
+                   class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-400 text-sm font-semibold transition duration-200">
                     Batal
                 </a>
                 <button type="submit"
-                        class="px-6 py-2.5 rounded-xl bg-indigo-650 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-650/10 transition duration-200">
+                        class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-600/10 transition duration-200">
                     Simpan Kuis
                 </button>
             </div>

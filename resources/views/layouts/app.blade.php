@@ -112,7 +112,7 @@
                                     </x-dropdown-link>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="flex items-center gap-2 text-sm text-red-650 hover:text-red-700 dark:text-red-400 dark:hover:text-red-350 border-t border-slate-100 dark:border-slate-850">
+                                        <x-dropdown-link href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-350 border-t border-slate-100 dark:border-slate-800">
                                             <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                             {{ __('Log Out') }}
                                         </x-dropdown-link>

@@ -13,7 +13,7 @@ class Kuis extends Model
 
     protected $fillable = [
         'kelas_id', 'mata_pelajaran_id', 'guru_id', 'pertemuan_id', 'judul', 'deskripsi',
-        'durasi_menit', 'jumlah_soal', 'batas_pengerjaan', 'bobot_nilai',
+        'durasi_menit', 'jumlah_soal', 'batas_pengerjaan', 'nilai_diambil_dari', 'bobot_nilai',
         'mulai_at', 'selesai_at', 'is_aktif',
     ];
 
@@ -56,5 +56,40 @@ class Kuis extends Model
     public function hasilBySiswa($siswaId)
     {
         return $this->hasilSiswa()->where('siswa_id', $siswaId)->latest('attempt')->first();
+    }
+
+    public function hasilNilaiBySiswa($siswaId)
+    {
+        $query = $this->hasilSiswa()
+            ->where('siswa_id', $siswaId)
+            ->where('is_submitted', true);
+
+        return match ($this->nilai_diambil_dari ?? 'terakhir') {
+            'tertinggi' => $query->orderByDesc('nilai_akhir')->orderByDesc('attempt')->first(),
+            default => $query->orderByDesc('attempt')->first(),
+        };
+    }
+
+    public function nilaiAkhirBySiswa($siswaId): ?float
+    {
+        $query = $this->hasilSiswa()
+            ->where('siswa_id', $siswaId)
+            ->where('is_submitted', true);
+
+        if (($this->nilai_diambil_dari ?? 'terakhir') === 'rata_rata') {
+            $avg = $query->avg('nilai_akhir');
+            return is_null($avg) ? null : round($avg, 2);
+        }
+
+        return $this->hasilNilaiBySiswa($siswaId)?->nilai_akhir;
+    }
+
+    public function labelNilaiDiambilDari(): string
+    {
+        return match ($this->nilai_diambil_dari ?? 'terakhir') {
+            'tertinggi' => 'Nilai tertinggi',
+            'rata_rata' => 'Rata-rata semua percobaan',
+            default => 'Percobaan terakhir',
+        };
     }
 }

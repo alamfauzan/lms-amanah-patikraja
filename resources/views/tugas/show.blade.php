@@ -1,35 +1,33 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-4 min-w-0">
-            <div class="flex items-center gap-2.5 min-w-0">
-                <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $tugas->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                </a>
-                <div class="min-w-0">
-                    <h2 class="font-bold text-sm sm:text-base md:text-lg text-slate-800 dark:text-slate-100 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-md md:max-w-xl" title="{{ $tugas->judul }}">{{ $tugas->judul }}</h2>
-                </div>
+        <div class="flex items-center gap-2.5 min-w-0">
+            <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $tugas->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div class="min-w-0">
+                <h2 class="font-bold text-sm sm:text-base md:text-lg text-slate-800 dark:text-slate-100 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-md md:max-w-xl" title="{{ $tugas->judul }}">{{ $tugas->judul }}</h2>
             </div>
-
-            @if(auth()->user()->hasAnyRole(['admin','guru']))
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ route('kelas.tugas.edit', [$kelas->id, $tugas->id]) }}"
-                       class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-slate-600 dark:text-slate-350 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200">
-                        Edit
-                    </a>
-                    <form method="POST" action="{{ route('kelas.tugas.destroy', [$kelas->id, $tugas->id]) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?')" class="inline">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-650 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/40 dark:border-red-900/40 transition duration-200">
-                            Hapus
-                        </button>
-                    </form>
-                </div>
-            @endif
         </div>
     </x-slot>
 
     <div class="max-w-3xl mx-auto space-y-6">
+        {{-- Page Actions Row --}}
+        @if(auth()->user()->hasAnyRole(['admin','guru']))
+            <div class="flex justify-end gap-2 mb-2">
+                <a href="{{ route('kelas.tugas.edit', [$kelas->id, $tugas->id]) }}"
+                   class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200 shadow-sm">
+                    Edit
+                </a>
+                <form method="POST" action="{{ route('kelas.tugas.destroy', [$kelas->id, $tugas->id]) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?')" class="inline">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-semibold rounded-xl border border-red-200/40 dark:border-red-900/40 transition duration-200 shadow-sm">
+                        Hapus
+                    </button>
+                </form>
+            </div>
+        @endif
         @if(session('success'))
             <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-455 rounded-xl text-sm font-semibold">
                 {{ session('success') }}
@@ -112,7 +110,7 @@
             <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
                 Instruksi Tugas
             </h2>
-            <div class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-350 leading-relaxed text-sm">
+            <div class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-400 leading-relaxed text-sm">
                 @if($tugas->deskripsi)
                     {!! nl2br(e($tugas->deskripsi)) !!}
                 @else
@@ -297,7 +295,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2.5">
-                                <a href="{{ asset('storage/' . $pengumpulan->file_jawaban) }}" download class="text-xs text-indigo-650 dark:text-indigo-400 font-bold hover:underline shrink-0">
+                                <a href="{{ asset('storage/' . $pengumpulan->file_jawaban) }}" download class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline shrink-0">
                                     Unduh
                                 </a>
                                 <button type="button" @click="isDeleted = true; if($refs.fileInput) { $refs.fileInput.value = ''; files = null; }" class="text-xs text-red-500 font-bold hover:underline shrink-0">
@@ -397,11 +395,11 @@
                                         @csrf
                                         <div class="w-full sm:w-28 shrink-0">
                                             <input type="number" name="nilai" min="0" max="{{ $tugas->nilai_maksimum }}" placeholder="Nilai" required
-                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                         </div>
                                         <div class="flex-1">
                                             <input type="text" name="feedback" placeholder="Feedback/komentar..."
-                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                         </div>
                                         <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition duration-200 shrink-0 shadow-sm">
                                             Simpan Nilai
@@ -414,7 +412,7 @@
                                             <p class="text-slate-700 dark:text-slate-300 mt-1 font-semibold truncate">{{ $p->feedback ?? 'Tidak ada feedback.' }}</p>
                                         </div>
                                         <div class="text-right shrink-0">
-                                            <p class="text-xl font-black text-emerald-650 dark:text-emerald-400">{{ $p->nilai }} <span class="text-xs font-normal text-slate-400">/ {{ $tugas->nilai_maksimum }}</span></p>
+                                            <p class="text-xl font-black text-emerald-600 dark:text-emerald-400">{{ $p->nilai }} <span class="text-xs font-normal text-slate-400">/ {{ $tugas->nilai_maksimum }}</span></p>
                                         </div>
                                     </div>
                                 @endif

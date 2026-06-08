@@ -155,12 +155,12 @@ class MateriController extends Controller
     public function destroy($id)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
-        $materi = Materi::findOrFail($id);
+        $materi = Materi::with('pertemuan')->findOrFail($id);
         if ($materi->file_path) Storage::disk('public')->delete($materi->file_path);
         $kelasId     = $materi->kelas_id;
-        $pertemuanId = $materi->pertemuan_id;
+        $mapelId     = $materi->pertemuan->mata_pelajaran_id;
         $materi->delete();
-        return redirect()->route('kelas.pertemuan.show', [$kelasId, $pertemuanId])
+        return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $mapelId])
             ->with('success', 'Materi berhasil dihapus!');
     }
 }

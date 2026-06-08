@@ -24,6 +24,7 @@ class TugasController extends Controller
     {
         $user = auth()->user();
         $mapelId = $request->query('mapel_id');
+        $filter = $request->query('filter', 'semua');
         $mapel = null;
 
         if ($kelasId) {
@@ -33,10 +34,24 @@ class TugasController extends Controller
                 $mapel = \App\Models\MataPelajaran::findOrFail($mapelId);
                 $query->where('mata_pelajaran_id', $mapelId);
             }
-            $tugas = $query->with(['guru', 'pertemuan'])
-                ->latest()
-                ->get();
-            return view('tugas.index', compact('tugas', 'kelas', 'mapel'));
+            $allTugas = $query->with(['guru', 'pertemuan', 'mataPelajaran'])->latest()->get();
+
+            $statusMap = [];
+            if ($user->hasRole('siswa')) {
+                foreach ($allTugas as $t) {
+                    $statusMap[$t->id] = $t->pengumpulanSiswa($user->id) ? 'selesai' : (now()->gt($t->deadline) ? 'overdue' : 'belum');
+                }
+                // Apply filter
+                if ($filter !== 'semua') {
+                    $tugas = $allTugas->filter(fn($t) => ($statusMap[$t->id] ?? 'belum') === $filter)->values();
+                } else {
+                    $tugas = $allTugas;
+                }
+            } else {
+                $tugas = $allTugas;
+            }
+
+            return view('tugas.index', compact('tugas', 'kelas', 'mapel', 'statusMap'));
         }
 
         // Global listing per role
@@ -44,7 +59,22 @@ class TugasController extends Controller
             $tugas = Tugas::where('guru_id', $user->id)->with(['kelas', 'pertemuan'])->latest()->get();
         } elseif ($user->hasRole('siswa')) {
             $kelasIds = $user->siswaKelas()->pluck('kelas.id');
-            $tugas = Tugas::whereIn('kelas_id', $kelasIds)->with(['kelas', 'guru'])->latest()->get();
+            $tugasQuery = Tugas::whereIn('kelas_id', $kelasIds)->with(['kelas', 'guru']);
+            
+            $allTugas = $tugasQuery->get();
+            $statusMap = [];
+            foreach ($allTugas as $t) {
+                $statusMap[$t->id] = $t->pengumpulanSiswa($user->id) ? 'selesai' : (now()->gt($t->deadline) ? 'overdue' : 'belum');
+            }
+
+            if ($filter !== 'semua') {
+                $tugas = $allTugas->filter(function ($t) use ($statusMap, $filter) {
+                    return $statusMap[$t->id] === $filter;
+                });
+            } else {
+                $tugas = $allTugas;
+            }
+            return view('tugas.index', compact('tugas', 'statusMap'));
         } else {
             $tugas = Tugas::with(['kelas', 'guru'])->latest()->get();
         }
@@ -65,13 +95,14 @@ class TugasController extends Controller
         }
 
         $preselectedMapelId = $request->query('mapel_id');
+        $preselectedPertemuanId = $request->query('pertemuan_id');
 
         $pertemuan = $kelas->pertemuan;
         if ($preselectedMapelId) {
             $pertemuan = $pertemuan->where('mata_pelajaran_id', $preselectedMapelId);
         }
 
-        return view('tugas.create', compact('kelas', 'mapels', 'preselectedMapelId', 'pertemuan'));
+        return view('tugas.create', compact('kelas', 'mapels', 'preselectedMapelId', 'preselectedPertemuanId', 'pertemuan'));
     }
 
     public function store(Request $request, $kelasId)
@@ -127,7 +158,7 @@ class TugasController extends Controller
             ]);
         }
 
-        return redirect()->route('kelas.tugas.index', [$kelasId, 'mapel_id' => $validated['mata_pelajaran_id']])
+        return redirect()->route('tugas.show', [$kelasId, $tugas->id])
             ->with('success', 'Tugas berhasil dibuat!');
     }
 
@@ -226,7 +257,8 @@ class TugasController extends Controller
             Storage::disk('public')->delete($tugas->file_path);
         }
         $tugas->delete();
-        return redirect()->route('kelas.tugas.index', [$kelasId, 'mapel_id' => $mapelId])
+
+        return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $mapelId])
             ->with('success', 'Tugas berhasil dihapus!');
     }
 

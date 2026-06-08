@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('kelas.tugas.index', $kelas->id) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $tugas->mata_pelajaran_id]) }}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </a>
             <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100">Edit Tugas</h2>
@@ -58,10 +58,10 @@
                 <div>
                     <label for="file" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Lampiran Berkas Soal / Pendukung <span class="text-xs font-normal text-slate-400 dark:text-slate-500">(opsional)</span></label>
                     <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
-                           class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-805 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                           class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                     <p class="text-[11px] text-slate-400 mt-1">Mendukung berkas PDF, Word, PPT, atau ZIP. Maksimal 10MB.</p>
                     @if($tugas->file_path)
-                        <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -78,7 +78,7 @@
                 <div>
                     <label for="pertemuan_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Pertemuan (opsional)</label>
                     <select id="pertemuan_id" name="pertemuan_id"
-                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-805 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                         <option value="">-- Tidak terkait pertemuan --</option>
                         <template x-for="p in meetings.filter(m => m.mapel_id == selectedMapel)" :key="p.id">
                             <option :value="p.id" x-text="`Pertemuan ${p.urutan}: ${p.judul}`" :selected="p.id == '{{ old('pertemuan_id', $tugas->pertemuan_id) }}'"></option>
@@ -90,7 +90,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         Update Tugas
                     </button>
-                    <a href="{{ route('kelas.tugas.index', $kelas->id) }}" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition">Batal</a>
+                    <a href="{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $tugas->mata_pelajaran_id]) }}" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition">Batal</a>
                 </div>
             </form>
         </div>

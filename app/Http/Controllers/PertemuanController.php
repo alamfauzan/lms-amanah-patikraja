@@ -82,9 +82,9 @@ class PertemuanController extends Controller
         $kelas = Kelas::findOrFail($kelasId);
         $this->authorizeKelasAccess($kelas);
 
-        $pertemuan = Pertemuan::with(['materi', 'tugas', 'kuis', 'mataPelajaran'])->findOrFail($id);
+        $pertemuan = Pertemuan::findOrFail($id);
 
-        return view('pertemuan.show', compact('kelas', 'pertemuan'));
+        return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $pertemuan->mata_pelajaran_id]);
     }
 
     public function edit($kelasId, $id)

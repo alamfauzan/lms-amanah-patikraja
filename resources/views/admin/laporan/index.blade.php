@@ -69,7 +69,7 @@
                                 <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Rata-rata Kuis</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-350">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-400">
                             @foreach($classesData as $class)
                                 <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
                                     <td class="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">
@@ -97,7 +97,7 @@
                                         @if(is_null($class['avg_kuis']))
                                             <span class="text-xs text-slate-300 dark:text-slate-650">—</span>
                                         @else
-                                            <span class="inline-block px-2.5 py-1 font-bold text-violet-650 dark:text-violet-400">
+                                            <span class="inline-block px-2.5 py-1 font-bold text-violet-600 dark:text-violet-400">
                                                 {{ $class['avg_kuis'] }}
                                             </span>
                                         @endif

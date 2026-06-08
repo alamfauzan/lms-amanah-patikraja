@@ -29,8 +29,8 @@ class JadwalController extends Controller
             $jadwal = Jadwal::whereIn('kelas_id', $kelasIds)->with(['kelas', 'mataPelajaran', 'guru'])->orderBy('hari')->orderBy('jam_mulai')->get();
         }
 
-        // Group by hari
-        $jadwalByHari = $jadwal->groupBy('hari');
+        // Group by hari — cast keys to int so view can look up with integer keys
+        $jadwalByHari = $jadwal->groupBy(fn($j) => (int) $j->hari);
 
         return view('jadwal.index', compact('jadwalByHari', 'hariList'));
     }

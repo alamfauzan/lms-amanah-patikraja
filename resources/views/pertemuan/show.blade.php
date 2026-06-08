@@ -133,7 +133,7 @@
                     <div class="divide-y divide-slate-100 dark:divide-slate-800/50">
                         @foreach($pertemuan->kuis as $k)
                             <div class="px-5 py-3 flex items-center justify-between gap-2">
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{{ $k->judul }}</span>
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">Kuis Pertemuan {{ $pertemuan->urutan }}</span>
                                 <a href="{{ route('kuis.show', [$kelas->id, $k->id]) }}" class="text-indigo-600 hover:text-indigo-700 text-xs font-semibold shrink-0">Lihat</a>
                             </div>
                         @endforeach

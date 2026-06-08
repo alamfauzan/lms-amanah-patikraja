@@ -60,7 +60,7 @@
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
             <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-violet-500/5 group-hover:bg-violet-500/10 rounded-full transition-colors duration-300"></div>
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-650 dark:text-violet-405 flex items-center justify-center font-semibold shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
                     </svg>
@@ -77,7 +77,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Daily Schedule -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
-            <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800">
+            <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Jadwal Mengajar Hari Ini</h3>
             </div>
             <div class="p-6 flex-1 space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar">
@@ -103,17 +103,17 @@
                             $iconColor = 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
                             $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>';
                         } else {
-                            $iconColor = 'bg-indigo-500/10 text-indigo-650 dark:bg-indigo-500/20 dark:text-indigo-400';
+                            $iconColor = 'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400';
                             $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>';
                         }
                     @endphp
-                    <div class="flex items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-300 {{ $isOngoing ? 'bg-blue-50/30 dark:bg-blue-500/5 border-blue-200 dark:border-blue-800/40 shadow-sm' : 'bg-slate-50/50 dark:bg-slate-900/50 border-slate-150 dark:border-slate-800/80' }}">
+                    <div class="flex items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-300 {{ $isOngoing ? 'bg-blue-50/30 dark:bg-blue-500/5 border-blue-200 dark:border-blue-800/40 shadow-sm' : 'bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800/80' }}">
                         <div class="flex items-center gap-3.5 min-w-0">
                             <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 {{ $iconColor }}">
                                 {!! $iconSvg !!}
                             </div>
                             <div class="min-w-0">
-                                <h4 class="text-sm font-bold text-slate-805 dark:text-slate-200 truncate leading-snug">
+                                <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate leading-snug">
                                     {{ $j->mataPelajaran->nama_mapel }}
                                 </h4>
                                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">
@@ -122,7 +122,7 @@
                             </div>
                         </div>
                         <div class="text-right shrink-0 flex flex-col items-end">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-350 leading-none">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-400 leading-none">
                                 {{ $j->jam_mulai ? \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') : '' }} - {{ $j->jam_selesai ? \Carbon\Carbon::parse($j->jam_selesai)->format('H:i') : '' }}
                             </span>
                             @if($isOngoing)
@@ -140,9 +140,9 @@
 
         <!-- Student Submission Logs -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
-            <div class="px-6 py-5 border-b border-slate-150 dark:border-slate-800 flex items-center justify-between">
+            <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="font-bold text-slate-800 dark:text-slate-100">Pengumpulan & Aktivitas Siswa</h3>
-                <span class="text-xxs font-semibold bg-emerald-500/10 text-emerald-650 px-2 py-0.5 rounded-full">{{ $aktivitasSiswa->count() }} Aktivitas Baru</span>
+                <span class="text-xxs font-semibold bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">{{ $aktivitasSiswa->count() }} Aktivitas Baru</span>
             </div>
             <div class="p-6 flex-1 overflow-y-auto max-h-[350px] custom-scrollbar">
                 <div class="space-y-6">

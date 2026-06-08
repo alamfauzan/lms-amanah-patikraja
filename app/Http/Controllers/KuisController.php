@@ -20,32 +20,36 @@ class KuisController extends Controller
 
     public function index(Request $request, $kelasId = null)
     {
-        $user = auth()->user();
-        $mapelId = $request->query('mapel_id');
-        $mapel = null;
-
         if ($kelasId) {
-            $kelas = Kelas::findOrFail($kelasId);
-            $query = Kuis::where('kelas_id', $kelasId);
-            if ($mapelId) {
-                $mapel = \App\Models\MataPelajaran::findOrFail($mapelId);
-                $query->where('mata_pelajaran_id', $mapelId);
-            }
-            $kuis  = $query->with(['guru', 'pertemuan'])->latest()->get();
-            return view('kuis.index', compact('kelas', 'kuis', 'mapel'));
+            return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $request->query('mapel_id')]);
         }
+
+        $user = auth()->user();
+        $filter = $request->query('filter', 'semua');
+        $statusMap = [];
 
         // Global listing
         if ($user->hasRole('guru')) {
-            $kuis = Kuis::where('guru_id', $user->id)->with(['kelas', 'pertemuan'])->latest()->get();
+            $kuis = Kuis::where('guru_id', $user->id)->with(['kelas', 'pertemuan', 'mataPelajaran'])->latest()->get();
         } elseif ($user->hasRole('siswa')) {
             $kelasIds = $user->siswaKelas()->pluck('kelas.id');
-            $kuis = Kuis::whereIn('kelas_id', $kelasIds)->with(['kelas', 'guru', 'pertemuan'])->latest()->get();
+            $allKuis = Kuis::whereIn('kelas_id', $kelasIds)->with(['kelas', 'guru', 'pertemuan', 'mataPelajaran'])->latest()->get();
+            foreach ($allKuis as $k) {
+                $attempt = $k->hasilBySiswa($user->id);
+                $isPast = $k->selesai_at ? now()->gt($k->selesai_at) : false;
+                $statusMap[$k->id] = ($attempt && $attempt->is_submitted) ? 'selesai' : ($isPast ? 'overdue' : 'belum');
+            }
+            if ($filter !== 'semua') {
+                $kuis = $allKuis->filter(fn($k) => ($statusMap[$k->id] ?? 'belum') === $filter)->values();
+            } else {
+                $kuis = $allKuis;
+            }
+            return view('kuis.index', compact('kuis', 'statusMap'));
         } else {
-            $kuis = Kuis::with(['kelas', 'guru', 'pertemuan'])->latest()->get();
+            $kuis = Kuis::with(['kelas', 'guru', 'pertemuan', 'mataPelajaran'])->latest()->get();
         }
 
-        return view('kuis.index', compact('kuis'));
+        return view('kuis.index', compact('kuis', 'statusMap'));
     }
 
     public function create(Request $request, $kelasId)
@@ -61,13 +65,14 @@ class KuisController extends Controller
         }
 
         $preselectedMapelId = $request->query('mapel_id');
+        $preselectedPertemuanId = $request->query('pertemuan_id');
 
         $pertemuan = $kelas->pertemuan;
         if ($preselectedMapelId) {
             $pertemuan = $pertemuan->where('mata_pelajaran_id', $preselectedMapelId);
         }
 
-        return view('kuis.create', compact('kelas', 'mapels', 'preselectedMapelId', 'pertemuan'));
+        return view('kuis.create', compact('kelas', 'mapels', 'preselectedMapelId', 'preselectedPertemuanId', 'pertemuan'));
     }
 
     public function store(Request $request, $kelasId)
@@ -80,6 +85,7 @@ class KuisController extends Controller
             'deskripsi'       => 'nullable|string',
             'durasi_menit'    => 'required|integer|min:1',
             'batas_pengerjaan'=> 'required|integer|min:1',
+            'nilai_diambil_dari' => 'required|in:terakhir,tertinggi,rata_rata',
             'bobot_nilai'     => 'required|numeric|min:0|max:100',
             'mulai_at'        => 'nullable|date',
             'selesai_at'      => 'nullable|date',
@@ -91,9 +97,11 @@ class KuisController extends Controller
             'soal.*.kunci_jawaban'   => 'required|string',
             'soal.*.poin'            => 'required|integer|min:1',
             'soal.*.pilihan_jawaban' => 'nullable|array',
+            'gambar.*'               => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ]);
 
         $user = auth()->user();
+        $kelas = Kelas::findOrFail($kelasId);
         if (!$user->hasRole('admin')) {
             $isAssigned = $kelas->kelasMapelGuru()
                 ->where('guru_id', $user->id)
@@ -113,6 +121,7 @@ class KuisController extends Controller
                 'durasi_menit'     => $validated['durasi_menit'],
                 'jumlah_soal'      => count($validated['soal']),
                 'batas_pengerjaan' => $validated['batas_pengerjaan'],
+                'nilai_diambil_dari' => $validated['nilai_diambil_dari'],
                 'bobot_nilai'      => $validated['bobot_nilai'],
                 'mulai_at'         => $validated['mulai_at'] ?? null,
                 'selesai_at'       => $validated['selesai_at'] ?? null,
@@ -120,9 +129,15 @@ class KuisController extends Controller
             ]);
 
             foreach ($validated['soal'] as $i => $soalData) {
+                $gambarPath = null;
+                if ($request->hasFile("gambar.$i") && $request->file("gambar.$i")->isValid()) {
+                    $gambarPath = $request->file("gambar.$i")->store('soal', 'public');
+                }
+
                 SoalKuis::create([
                     'kuis_id'          => $kuis->id,
                     'pertanyaan'       => $soalData['pertanyaan'],
+                    'gambar'           => $gambarPath,
                     'tipe'             => $soalData['tipe'],
                     'pilihan_jawaban'  => $soalData['pilihan_jawaban'] ?? null,
                     'kunci_jawaban'    => $soalData['kunci_jawaban'],
@@ -144,7 +159,7 @@ class KuisController extends Controller
             }
         });
 
-        return redirect()->route('kelas.kuis.index', [$kelasId, 'mapel_id' => $validated['mata_pelajaran_id']])->with('success', 'Kuis berhasil dibuat!');
+        return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $validated['mata_pelajaran_id']])->with('success', 'Kuis berhasil dibuat!');
     }
 
     public function show($kelasId, $id)
@@ -188,17 +203,29 @@ class KuisController extends Controller
         if (!auth()->user()->hasAnyRole(['admin', 'guru'])) abort(403);
 
         $validated = $request->validate([
-            'mata_pelajaran_id' => 'required|exists:mata_pelajaran,id',
-            'judul'           => 'required|string|max:255',
-            'deskripsi'       => 'nullable|string',
-            'durasi_menit'    => 'required|integer|min:1',
-            'batas_pengerjaan'=> 'required|integer|min:1',
-            'bobot_nilai'     => 'required|numeric|min:0|max:100',
-            'mulai_at'        => 'nullable|date',
-            'selesai_at'      => 'nullable|date',
+            'mata_pelajaran_id'  => 'required|exists:mata_pelajaran,id',
+            'judul'              => 'required|string|max:255',
+            'deskripsi'          => 'nullable|string',
+            'durasi_menit'       => 'required|integer|min:1',
+            'batas_pengerjaan'   => 'required|integer|min:1',
+            'nilai_diambil_dari' => 'required|in:terakhir,tertinggi,rata_rata',
+            'bobot_nilai'        => 'required|numeric|min:0|max:100',
+            'mulai_at'           => 'nullable|date',
+            'selesai_at'         => 'nullable|date',
+            // Soal editing
+            'soal'               => 'nullable|array',
+            'soal.*.id'          => 'nullable|exists:soal_kuis,id',
+            'soal.*.pertanyaan'  => 'required_with:soal|string',
+            'soal.*.tipe'        => 'required_with:soal|in:pilihan_ganda,benar_salah,isian_singkat',
+            'soal.*.kunci_jawaban' => 'required_with:soal|string',
+            'soal.*.poin'        => 'required_with:soal|integer|min:1',
+            'soal.*.pilihan_jawaban' => 'nullable|array',
+            'gambar.*'           => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ]);
 
-        $user = auth()->user();
+        $user  = auth()->user();
+        $kelas = Kelas::findOrFail($kelasId);
+
         if (!$user->hasRole('admin')) {
             $isAssigned = $kelas->kelasMapelGuru()
                 ->where('guru_id', $user->id)
@@ -207,10 +234,66 @@ class KuisController extends Controller
             if (!$isAssigned) abort(403, 'Anda tidak mengampu mata pelajaran ini di kelas ini.');
         }
 
-        $kuis = Kuis::findOrFail($id);
-        $kuis->update($validated);
-        $kuis->is_aktif = $request->boolean('is_aktif');
-        $kuis->save();
+        DB::transaction(function () use ($validated, $request, $id) {
+            $kuis = Kuis::findOrFail($id);
+            $kuis->update([
+                'mata_pelajaran_id'  => $validated['mata_pelajaran_id'],
+                'judul'              => $validated['judul'],
+                'deskripsi'          => $validated['deskripsi'] ?? null,
+                'durasi_menit'       => $validated['durasi_menit'],
+                'batas_pengerjaan'   => $validated['batas_pengerjaan'],
+                'nilai_diambil_dari' => $validated['nilai_diambil_dari'],
+                'bobot_nilai'        => $validated['bobot_nilai'],
+                'mulai_at'           => $validated['mulai_at'] ?? null,
+                'selesai_at'         => $validated['selesai_at'] ?? null,
+                'is_aktif'           => $request->boolean('is_aktif'),
+            ]);
+
+            // Update soal if provided
+            if (!empty($validated['soal'])) {
+                foreach ($validated['soal'] as $i => $soalData) {
+                    $gambarPath = null;
+                    if ($request->hasFile("gambar.$i") && $request->file("gambar.$i")->isValid()) {
+                        $gambarPath = $request->file("gambar.$i")->store('soal', 'public');
+                    }
+
+                    if (!empty($soalData['id'])) {
+                        // Update existing soal
+                        $soal = SoalKuis::find($soalData['id']);
+                        if ($soal && $soal->kuis_id == $kuis->id) {
+                            $soal->update([
+                                'pertanyaan'      => $soalData['pertanyaan'],
+                                'tipe'            => $soalData['tipe'],
+                                'pilihan_jawaban' => $soalData['pilihan_jawaban'] ?? null,
+                                'kunci_jawaban'   => $soalData['kunci_jawaban'],
+                                'poin'            => $soalData['poin'],
+                                'urutan'          => $i + 1,
+                            ]);
+                            if ($gambarPath) {
+                                $soal->gambar = $gambarPath;
+                                $soal->save();
+                            }
+                        }
+                    } else {
+                        // Create new soal
+                        SoalKuis::create([
+                            'kuis_id'         => $kuis->id,
+                            'pertanyaan'      => $soalData['pertanyaan'],
+                            'gambar'          => $gambarPath,
+                            'tipe'            => $soalData['tipe'],
+                            'pilihan_jawaban' => $soalData['pilihan_jawaban'] ?? null,
+                            'kunci_jawaban'   => $soalData['kunci_jawaban'],
+                            'poin'            => $soalData['poin'],
+                            'urutan'          => $i + 1,
+                        ]);
+                    }
+                }
+
+                // Update jumlah_soal
+                $kuis->jumlah_soal = $kuis->soal()->count();
+                $kuis->save();
+            }
+        });
 
         return redirect()->route('kuis.show', [$kelasId, $id])->with('success', 'Kuis berhasil diupdate!');
     }
@@ -221,7 +304,8 @@ class KuisController extends Controller
         $kuis = Kuis::findOrFail($id);
         $mapelId = $kuis->mata_pelajaran_id;
         $kuis->delete();
-        return redirect()->route('kelas.kuis.index', [$kelasId, 'mapel_id' => $mapelId])->with('success', 'Kuis berhasil dihapus!');
+
+        return redirect()->route('kelas.pertemuan.index', [$kelasId, 'mapel_id' => $mapelId])->with('success', 'Kuis berhasil dihapus!');
     }
 
     public function kerjakan($kelasId, $id)
@@ -230,7 +314,7 @@ class KuisController extends Controller
         if (!$user->hasRole('siswa')) abort(403);
 
         $kelas = Kelas::findOrFail($kelasId);
-        $kuis = Kuis::with('soal')->findOrFail($id);
+        $kuis = Kuis::with(['soal', 'pertemuan'])->findOrFail($id);
 
         // Cek apakah ada sesi yang sedang berlangsung (belum di-submit)
         $ongoingAttempt = HasilKuis::where([
@@ -335,9 +419,11 @@ class KuisController extends Controller
         $kuis   = Kuis::with('soal')->findOrFail($id);
         $hasil  = HasilKuis::where(['kuis_id' => $id, 'siswa_id' => $user->id])
             ->orderByDesc('attempt')->first();
+        $nilaiDigunakan = $kuis->nilaiAkhirBySiswa($user->id);
+        $hasilDigunakan = $kuis->hasilNilaiBySiswa($user->id);
         $jawaban = JawabanSiswa::where(['kuis_id' => $id, 'siswa_id' => $user->id, 'attempt' => optional($hasil)->attempt])
             ->with('soal')->get()->keyBy('soal_id');
 
-        return view('kuis.hasil', compact('kelas', 'kuis', 'hasil', 'jawaban'));
+        return view('kuis.hasil', compact('kelas', 'kuis', 'hasil', 'jawaban', 'nilaiDigunakan', 'hasilDigunakan'));
     }
 }

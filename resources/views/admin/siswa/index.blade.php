@@ -49,12 +49,12 @@
                                 <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-350">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-400">
                             @foreach($siswas as $siswa)
                                 <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
                                     <td class="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
+                                            <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
                                                 {{ strtoupper(substr($siswa->name, 0, 2)) }}
                                             </div>
                                             <span>{{ $siswa->name }}</span>

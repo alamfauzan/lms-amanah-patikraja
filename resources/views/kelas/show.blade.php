@@ -31,16 +31,16 @@
                     <h3 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ $kelas->nama_kelas }}</h3>
                     <p class="text-sm text-slate-400 dark:text-slate-500 mt-0.5">{{ $kelas->deskripsi ?? 'Tidak ada deskripsi.' }}</p>
                     <div class="flex flex-wrap items-center gap-3 mt-3">
-                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-650 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             {{ $kelas->tahun_ajaran }}
                         </span>
-                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-650 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             {{ $kelas->siswa->count() }} Siswa
                         </span>
                         @if($kelas->waliKelas)
-                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-650 dark:text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full">
+                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 Wali: {{ $kelas->waliKelas->name }}
                             </span>
@@ -63,14 +63,25 @@
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden {{ auth()->user()->hasRole('siswa') ? 'lg:col-span-3' : 'lg:col-span-2' }}">
                 <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <h3 class="font-bold text-slate-800 dark:text-slate-100">Mata Pelajaran</h3>
-                    <span class="text-xs font-bold text-indigo-600 bg-indigo-500/10 px-2.5 py-1 rounded-full">{{ $kelas->kelasMapelGuru->count() }} Mapel</span>
+                    @php
+                        $mapelCount = auth()->user()->hasRole('guru')
+                            ? $kelas->kelasMapelGuru->where('guru_id', auth()->id())->count()
+                            : $kelas->kelasMapelGuru->count();
+                    @endphp
+                    <span class="text-xs font-bold text-indigo-600 bg-indigo-500/10 px-2.5 py-1 rounded-full">{{ $mapelCount }} Mapel</span>
                 </div>
 
                 @if($kelas->kelasMapelGuru->isEmpty())
                     <div class="p-6 text-center text-sm text-slate-400 dark:text-slate-500">Belum ada mata pelajaran yang ditambahkan.</div>
                 @else
                     <div class="p-6 space-y-4">
-                        @foreach($kelas->kelasMapelGuru as $kmg)
+                @php
+                    // Guru hanya melihat mapel yang dia ajar; admin & siswa lihat semua
+                    $mapelList = auth()->user()->hasRole('guru')
+                        ? $kelas->kelasMapelGuru->where('guru_id', auth()->id())
+                        : $kelas->kelasMapelGuru;
+                @endphp
+                @foreach($mapelList as $kmg)
                             @php
                                 $materiCount = \App\Models\Materi::where('kelas_id', $kelas->id)->where('guru_id', $kmg->guru_id)->count();
                                 $tugasCount = $kelas->tugas->where('guru_id', $kmg->guru_id)->count();
@@ -88,11 +99,11 @@
                                     $iconColor = 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
                                     $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>';
                                 } else {
-                                    $iconColor = 'bg-indigo-500/10 text-indigo-650 dark:bg-indigo-500/20 dark:text-indigo-400';
+                                    $iconColor = 'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400';
                                     $iconSvg = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>';
                                 }
                             @endphp
-                            <div class="flex items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-300 bg-slate-50/50 dark:bg-slate-900/50 border-slate-150 dark:border-slate-800/80 hover:shadow-sm cursor-pointer"
+                            <div class="flex items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-300 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800/80 hover:shadow-sm cursor-pointer"
                                  @click="window.location.href = '{{ route('kelas.pertemuan.index', [$kelas->id, 'mapel_id' => $kmg->mata_pelajaran_id]) }}'">
                                 <div class="flex items-center gap-3.5 min-w-0">
                                     <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 {{ $iconColor }}">
@@ -105,6 +116,20 @@
                                         <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">
                                             {{ Str::startsWith(strtolower($kmg->guru->name ?? ''), 'guru') ? ($kmg->guru->name ?? '-') : 'Guru ' . ($kmg->guru->name ?? '-') }} • {{ $kmg->mataPelajaran->kode_mapel }}
                                         </p>
+                                        @php
+                                            $jadwalMapel = $jadwalKelas->get($kmg->mata_pelajaran_id, collect());
+                                            $shortDays = [1=>'SEN',2=>'SEL',3=>'RAB',4=>'KAM',5=>'JUM',6=>'SAB',7=>'MIN'];
+                                        @endphp
+                                        @if($jadwalMapel->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mt-1.5">
+                                                @foreach($jadwalMapel as $jd)
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                                        {{ $shortDays[$jd->hari] ?? '?' }}
+                                                        <span class="font-normal text-slate-400">{{ \Carbon\Carbon::parse($jd->jam_mulai)->format('H:i') }}</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0" @click.stop>

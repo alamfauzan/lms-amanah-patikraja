@@ -16,19 +16,30 @@
             </div>
             <form method="POST" action="{{ route('kelas.pertemuan.store', $kelas->id) }}" class="px-8 py-6 space-y-5">
                 @csrf
-                <div>
-                    <label for="mata_pelajaran_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
-                    <select id="mata_pelajaran_id" name="mata_pelajaran_id"
-                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition @error('mata_pelajaran_id') border-red-400 @enderror">
-                        <option value="">Pilih Mata Pelajaran</option>
-                        @foreach($mapels as $mapel)
-                            <option value="{{ $mapel->id }}" {{ old('mata_pelajaran_id', $preselectedMapelId) == $mapel->id ? 'selected' : '' }}>
-                                {{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('mata_pelajaran_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                </div>
+                @if($preselectedMapelId)
+                    <input type="hidden" name="mata_pelajaran_id" value="{{ $preselectedMapelId }}">
+                    <div>
+                        <span class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mata Pelajaran</span>
+                        @php $selectedMapelObj = $mapels->firstWhere('id', $preselectedMapelId); @endphp
+                        <div class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 font-medium text-sm">
+                            {{ $selectedMapelObj ? $selectedMapelObj->nama_mapel . ' (' . $selectedMapelObj->kode_mapel . ')' : 'Mata Pelajaran' }}
+                        </div>
+                    </div>
+                @else
+                    <div>
+                        <label for="mata_pelajaran_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
+                        <select id="mata_pelajaran_id" name="mata_pelajaran_id"
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition @error('mata_pelajaran_id') border-red-400 @enderror">
+                            <option value="">Pilih Mata Pelajaran</option>
+                            @foreach($mapels as $mapel)
+                                <option value="{{ $mapel->id }}" {{ old('mata_pelajaran_id') == $mapel->id ? 'selected' : '' }}>
+                                    {{ $mapel->nama_mapel }} ({{ $mapel->kode_mapel }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('mata_pelajaran_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                    </div>
+                @endif
                 <div>
                     <label for="judul" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Judul Pertemuan <span class="text-red-500">*</span></label>
                     <input type="text" id="judul" name="judul" value="{{ old('judul') }}" placeholder="Contoh: Pengenalan Aljabar"

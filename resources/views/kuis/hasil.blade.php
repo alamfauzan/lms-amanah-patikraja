@@ -83,7 +83,20 @@
                                 {!! nl2br(e($soal->pertanyaan)) !!}
                             </div>
 
-                            {{-- Options Display --}}
+                            @if(!empty($soal->gambar))
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $soal->gambar) }}"
+                                         alt="Gambar Soal"
+                                         class="max-h-56 w-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm object-contain cursor-zoom-in hover:opacity-90 transition"
+                                         onclick="
+                                             const overlay = document.createElement('div');
+                                             overlay.className = 'fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out';
+                                             overlay.innerHTML = '<img src=\'' + this.src + '\' class=\'max-h-screen max-w-full rounded-xl shadow-2xl object-contain\'>';
+                                             overlay.onclick = () => overlay.remove();
+                                             document.body.appendChild(overlay);
+                                         ">
+                                </div>
+                            @endif
                             @if($soal->tipe === 'pilihan_ganda')
                                 <div class="grid grid-cols-1 gap-2">
                                     @foreach(['a', 'b', 'c', 'd'] as $optKey)

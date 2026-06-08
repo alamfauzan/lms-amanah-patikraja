@@ -53,7 +53,7 @@
                             <label for="password" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Baru</label>
                             <input type="password" id="password" name="password"
                                    placeholder="Minimal 8 karakter"
-                                   class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/60 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 @error('password') border-red-400 @enderror">
+                                   class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 @error('password') border-red-400 @enderror">
                             @error('password')
                                 <p class="mt-1 text-xxs text-red-500">{{ $message }}</p>
                             @enderror
@@ -64,7 +64,7 @@
                             <label for="password_confirmation" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Konfirmasi Password Baru</label>
                             <input type="password" id="password_confirmation" name="password_confirmation"
                                    placeholder="Ulangi password baru"
-                                   class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/60 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200">
+                                   class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200">
                         </div>
                     </div>
                 </div>
