@@ -13,6 +13,12 @@
     </x-slot>
 
     <div class="max-w-3xl mx-auto space-y-6">
+        @if(request()->query('debug_roles'))
+            <div class="p-3 mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl text-sm">
+                <strong>DEBUG:</strong>
+                Roles: {{ implode(', ', auth()->user()->getRoleNames()->toArray() ?? []) }} — Email: {{ auth()->user()->email }}
+            </div>
+        @endif
         {{-- Page Actions Row --}}
         @if(auth()->user()->hasAnyRole(['admin','guru']))
             <div class="flex justify-end gap-2 mb-2">
@@ -391,11 +397,11 @@
                                 @endif
 
                                 @if($p->status !== 'dinilai')
-                                    <form method="POST" action="{{ route('tugas.grade', [$kelas->id, $tugas->id, $p->id]) }}" class="flex flex-col sm:flex-row gap-3 pt-2">
+                                    <form method="POST" action="{{ route('tugas.grade', [$kelas->id, $tugas->id, $p->id]) }}" class="flex flex-col md:flex-row md:items-center gap-3 pt-2">
                                         @csrf
-                                        <div class="w-full sm:w-28 shrink-0">
-                                            <input type="number" name="nilai" min="0" max="{{ $tugas->nilai_maksimum }}" placeholder="Nilai" required
-                                                   class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <div class="w-full md:w-auto shrink-0">
+                                              <input type="number" name="nilai" min="0" max="{{ $tugas->nilai_maksimum }}" placeholder="Nilai" required
+                                                  class="w-full md:w-20 px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                         </div>
                                         <div class="flex-1">
                                             <input type="text" name="feedback" placeholder="Feedback/komentar..."
@@ -406,14 +412,31 @@
                                         </button>
                                     </form>
                                 @else
-                                    <div class="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex items-center justify-between gap-4">
-                                        <div class="text-xs min-w-0">
-                                            <span class="font-medium text-slate-550 block">Feedback/Komentar Guru:</span>
-                                            <p class="text-slate-700 dark:text-slate-300 mt-1 font-semibold truncate">{{ $p->feedback ?? 'Tidak ada feedback.' }}</p>
+                                    <div class="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl space-y-4">
+                                        <div class="flex items-center justify-between gap-4">
+                                            <div class="text-xs min-w-0">
+                                                <span class="font-medium text-slate-550 block">Feedback/Komentar Guru:</span>
+                                                <p class="text-slate-700 dark:text-slate-300 mt-1 font-semibold truncate">{{ $p->feedback ?? 'Tidak ada feedback.' }}</p>
+                                            </div>
+                                            <div class="text-right shrink-0">
+                                                <p class="text-xl font-black text-emerald-600 dark:text-emerald-400">{{ rtrim(rtrim(number_format((float)$p->nilai, 2, '.', ''), '0'), '.') }} <span class="text-xs font-normal text-slate-400">/ {{ $tugas->nilai_maksimum }}</span></p>
+                                            </div>
                                         </div>
-                                        <div class="text-right shrink-0">
-                                            <p class="text-xl font-black text-emerald-600 dark:text-emerald-400">{{ $p->nilai }} <span class="text-xs font-normal text-slate-400">/ {{ $tugas->nilai_maksimum }}</span></p>
-                                        </div>
+
+                                        <form method="POST" action="{{ route('tugas.grade', [$kelas->id, $tugas->id, $p->id]) }}" class="flex flex-col md:flex-row md:items-center gap-3">
+                                            @csrf
+                                            <div class="w-full md:w-auto shrink-0">
+                                                <input type="number" name="nilai" min="0" max="{{ $tugas->nilai_maksimum }}" placeholder="Nilai" required value="{{ old('nilai', $p->nilai) }}"
+                                                       class="w-full md:w-20 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            </div>
+                                            <div class="flex-1">
+                                                <input type="text" name="feedback" placeholder="Feedback/komentar..." value="{{ old('feedback', $p->feedback) }}"
+                                                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition duration-200 shadow-sm">Simpan Nilai</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 @endif
                             </div>
@@ -423,4 +446,25 @@
             </div>
         @endif
     </div>
+    <script>
+        (function(){
+            const tugasId = {{ $tugas->id }};
+            const key = 'tugas_scroll_' + tugasId;
+            // Restore scroll position if present
+            const pos = sessionStorage.getItem(key);
+            if (pos !== null) {
+                window.scrollTo(0, parseInt(pos, 10));
+                sessionStorage.removeItem(key);
+            }
+
+            // Save scroll position before any form submit on this page
+            document.addEventListener('DOMContentLoaded', function(){
+                document.querySelectorAll('form').forEach(function(f){
+                    f.addEventListener('submit', function(){
+                        try { sessionStorage.setItem(key, window.scrollY || window.pageYOffset); } catch(e){}
+                    });
+                });
+            });
+        })();
+    </script>
 </x-app-layout>

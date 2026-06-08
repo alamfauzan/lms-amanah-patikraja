@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="w-28 h-28 bg-indigo-50 dark:bg-indigo-950/20 border-2 border-indigo-100 dark:border-indigo-900/30 rounded-full flex flex-col items-center justify-center shrink-0">
-                    <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{{ $hasil->nilai_akhir }}</span>
+                    <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{{ (int) round($hasil->nilai_akhir) }}</span>
                     <span class="text-[9px] text-slate-400 uppercase font-bold mt-1 tracking-widest">Nilai Akhir</span>
                 </div>
             </div>

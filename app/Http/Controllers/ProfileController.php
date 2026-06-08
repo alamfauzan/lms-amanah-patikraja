@@ -26,7 +26,26 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $data = $request->validated();
+
+        // Handle avatar upload if present
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $path = $file->store('avatars', 'public');
+
+            // delete old avatar if exists
+            if ($request->user()->avatar) {
+                try {
+                    \Storage::disk('public')->delete($request->user()->avatar);
+                } catch (\Throwable $e) {
+                    // ignore
+                }
+            }
+
+            $data['avatar'] = $path;
+        }
+
+        $request->user()->fill($data);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;

@@ -51,7 +51,7 @@ Route::get('/dashboard', function () {
                 return [
                     'icon_bg' => 'bg-emerald-500/10 text-emerald-600',
                     'icon_svg' => '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
-                    'text' => 'Siswa <strong>' . e($h->siswa->name) . '</strong> menyelesaikan kuis <span class="font-medium text-slate-805 dark:text-slate-200">"' . e($h->kuis->judul) . '"</span> dengan Nilai: ' . $h->nilai_akhir . '.',
+                    'text' => 'Siswa <strong>' . e($h->siswa->name) . '</strong> menyelesaikan kuis <span class="font-medium text-slate-805 dark:text-slate-200">"' . e($h->kuis->judul) . '"</span> dengan Nilai: ' . (int) round($h->nilai_akhir) . '.',
                     'time' => $h->selesai_at ?: $h->updated_at,
                 ];
             });
@@ -107,7 +107,7 @@ Route::get('/dashboard', function () {
                     'nama_siswa' => $h->siswa->name,
                     'initials' => strtoupper(substr($h->siswa->name, 0, 2)),
                     'deskripsi' => 'Mengerjakan Kuis: ' . $h->kuis->judul,
-                    'status' => 'Nilai: ' . $h->nilai_akhir,
+                    'status' => 'Nilai: ' . (int) round($h->nilai_akhir),
                     'timestamp' => $h->selesai_at ?: $h->updated_at,
                 ];
             });
@@ -302,6 +302,7 @@ Route::middleware('auth')->group(function () {
     Route::get('nilai',                          [NilaiController::class, 'indexGuru'])->name('nilai.guru');
     Route::get('nilai/siswa',                    [NilaiController::class, 'indexSiswa'])->name('nilai.siswa');
     Route::get('nilai/kelas/{kelas}',            [NilaiController::class, 'rekapKelas'])->name('nilai.rekap');
+    Route::post('nilai/kelas/{kelas}/update',    [NilaiController::class, 'updateKelas'])->name('nilai.update');
     Route::get('nilai/kelas/{kelas}/export-csv', [NilaiController::class, 'exportCsv'])->name('nilai.export-csv');
 });
 

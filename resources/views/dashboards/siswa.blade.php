@@ -10,7 +10,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Stat Card 1 -->
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-red-500/5 group-hover:bg-red-500/10 rounded-full transition-colors duration-300"></div>
+            <div class="absolute -right-2 -bottom-4 w-24 h-24 bg-red-500/5 group-hover:bg-red-500/10 rounded-full transition-colors duration-300 pointer-events-none -z-10"></div>
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-600 dark:text-red-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -26,7 +26,7 @@
 
         <!-- Stat Card 2 -->
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 group-hover:bg-indigo-500/10 rounded-full transition-colors duration-300"></div>
+            <div class="absolute -right-2 -bottom-4 w-24 h-24 bg-indigo-500/5 group-hover:bg-indigo-500/10 rounded-full transition-colors duration-300 pointer-events-none -z-10"></div>
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -42,7 +42,7 @@
 
         <!-- Stat Card 3 -->
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/5 group-hover:bg-emerald-500/10 rounded-full transition-colors duration-300"></div>
+            <div class="absolute -right-2 -bottom-4 w-24 h-24 bg-emerald-500/5 group-hover:bg-emerald-500/10 rounded-full transition-colors duration-300 pointer-events-none -z-10"></div>
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -51,14 +51,14 @@
                 </div>
                 <div>
                     <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Nilai Rata-rata</span>
-                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{{ $nilaiRataRata }}</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{{ rtrim(rtrim(number_format((float)$nilaiRataRata, 2, '.', ''), '0'), '.') }}</h3>
                 </div>
             </div>
         </div>
 
         <!-- Stat Card 4 -->
         <div class="group relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 group-hover:bg-amber-500/10 rounded-full transition-colors duration-300"></div>
+            <div class="absolute -right-2 -bottom-4 w-24 h-24 bg-amber-500/5 group-hover:bg-amber-500/10 rounded-full transition-colors duration-300 pointer-events-none -z-10"></div>
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-405 flex items-center justify-center font-semibold shrink-0">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

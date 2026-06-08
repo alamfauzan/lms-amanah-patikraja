@@ -13,7 +13,7 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
         @csrf
         @method('patch')
 
@@ -47,8 +47,22 @@
             @endif
         </div>
 
+        <div>
+            <x-input-label for="avatar" :value="__('Foto Profil (max 2MB)')" />
+            <input id="avatar" name="avatar" type="file" accept="image/*" class="mt-1 block w-full text-sm text-slate-600" />
+            <x-input-error class="mt-2" :messages="$errors->get('avatar')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
+
+            <div class="ml-4">
+                @if($user->avatar)
+                    <img src="{{ asset('storage/'.$user->avatar) }}" alt="avatar" class="w-12 h-12 rounded-full object-cover">
+                @else
+                    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-sm text-slate-500">No</div>
+                @endif
+            </div>
 
             @if (session('status') === 'profile-updated')
                 <p

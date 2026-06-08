@@ -10,6 +10,7 @@ use App\Models\HasilKuis;
 use App\Models\KelasMapelGuru;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class NilaiController extends Controller
 {
@@ -111,6 +112,68 @@ class NilaiController extends Controller
     }
 
     /**
+     * Terima update nilai tugas dari Guru (simple save)
+     */
+    public function updateKelas(Request $request, $kelasId)
+    {
+        $user = auth()->user();
+        if (!$user->hasAnyRole(['admin', 'guru'])) abort(403);
+
+        $payload = $request->input('nilai', []); // format: [tugasId => [siswaId => value]]
+        $disimpan = 0;
+        $dikosongkan = 0;
+
+        foreach ($payload as $tugasId => $bySiswa) {
+            foreach ($bySiswa as $siswaId => $val) {
+                // If the input is empty, we should NOT create a new pengumpulan.
+                // If a pengumpulan exists, clear the nilai and set status accordingly.
+                if ($val === '' || is_null($val)) {
+                    $existing = PengumpulanTugas::where(['tugas_id' => $tugasId, 'siswa_id' => $siswaId])->first();
+                    if (! $existing) {
+                        // nothing to clear
+                        continue;
+                    }
+
+                    $existing->nilai = null;
+                    // if student had uploaded a file, keep 'terkumpul', otherwise 'belum'
+                    $existing->status = $existing->file_jawaban ? 'terkumpul' : 'belum';
+                    if (Schema::hasColumn('pengumpulan_tugas', 'dikoreksi_oleh')) {
+                        $existing->dikoreksi_oleh = null;
+                    }
+                    $existing->save();
+                    $dikosongkan++;
+                    continue;
+                }
+
+                // Non-empty input: create or update pengumpulan with nilai
+                $nilai = is_numeric($val) ? floatval($val) : null;
+
+                $pengumpulan = PengumpulanTugas::firstOrNew([
+                    'tugas_id' => $tugasId,
+                    'siswa_id' => $siswaId,
+                ]);
+                $pengumpulan->nilai = $nilai;
+                $pengumpulan->status = 'dinilai';
+                if (Schema::hasColumn('pengumpulan_tugas', 'dikoreksi_oleh')) {
+                    $pengumpulan->dikoreksi_oleh = $user->id ?? null;
+                }
+                $pengumpulan->save();
+                $disimpan++;
+            }
+        }
+
+        $message = 'Nilai disimpan.';
+        if ($disimpan > 0 || $dikosongkan > 0) {
+            $parts = [];
+            if ($disimpan > 0) $parts[] = $disimpan . ' nilai disimpan';
+            if ($dikosongkan > 0) $parts[] = $dikosongkan . ' nilai dikosongkan';
+            $message = 'Nilai berhasil diperbarui: ' . implode(', ', $parts) . '.';
+        }
+
+        return redirect()->route('nilai.rekap', $kelasId)->with('success', $message);
+    }
+
+    /**
      * Halaman nilai untuk Siswa (melihat nilai sendiri di semua kelas)
      */
     public function indexSiswa()
@@ -161,6 +224,10 @@ class NilaiController extends Controller
                 $nilaiKuis  = $kuisData->pluck('nilai')->filter(fn($v) => !is_null($v))->values();
                 $semua = $nilaiTugas->concat($nilaiKuis);
                 $rataRata = $semua->count() > 0 ? round($semua->average(), 1) : null;
+                $rataTugas = $nilaiTugas->count() > 0 ? round($nilaiTugas->average(), 1) : null;
+                $rataKuis   = $nilaiKuis->count() > 0 ? round($nilaiKuis->average(), 1) : null;
+                $komponenAkhir = collect([$rataTugas, $rataKuis])->filter(fn ($v) => !is_null($v));
+                $nilaiAkhir = $komponenAkhir->count() > 0 ? round($komponenAkhir->average(), 1) : null;
 
                 return [
                     'mata_pelajaran' => $mapel,
@@ -168,6 +235,7 @@ class NilaiController extends Controller
                     'tugas'          => $tugasData,
                     'kuis'           => $kuisData,
                     'rata_rata'      => $rataRata,
+                    'nilai_akhir'    => $nilaiAkhir,
                 ];
             })->filter()->values();
 

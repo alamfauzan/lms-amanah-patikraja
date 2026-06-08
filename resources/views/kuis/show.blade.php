@@ -194,7 +194,7 @@
                         <div class="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center text-center sm:w-36 shrink-0">
                             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Nilai Akhir</span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">{{ $nilaiDigunakan }}</span>
+                                <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">{{ rtrim(rtrim(number_format((float)$nilaiDigunakan, 2, '.', ''), '0'), '.') }}</span>
                                 <span class="text-sm text-slate-400 font-semibold">/ 100</span>
                             </div>
                         </div>
@@ -448,7 +448,7 @@
                                         </td>
                                         <td class="px-6 py-4 text-right">
                                             @if($hasil->is_submitted)
-                                                <span class="font-bold text-sm text-indigo-600 dark:text-indigo-400">{{ $hasil->nilai_akhir }}</span>
+                                                <span class="font-bold text-sm text-indigo-600 dark:text-indigo-400">{{ (int) round($hasil->nilai_akhir) }}</span>
                                             @else
                                                 <span class="text-slate-400 font-semibold italic text-[11px]">Dalam proses</span>
                                             @endif

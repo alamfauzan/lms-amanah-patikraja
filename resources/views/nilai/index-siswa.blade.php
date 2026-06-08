@@ -29,39 +29,42 @@
 
                 <div class="p-6 space-y-6">
                     @foreach($mapelList as $m)
-                        <div class="border border-slate-200 dark:border-slate-800/80 rounded-2xl overflow-hidden bg-slate-50/25 dark:bg-slate-900/30">
-                            <!-- Subject Header -->
-                            <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap bg-slate-50/50 dark:bg-slate-900/50">
+                        <details class="group border border-slate-200 dark:border-slate-800/80 rounded-2xl overflow-hidden bg-slate-50/25 dark:bg-slate-900/30" @if($loop->first) open @endif>
+                            <summary class="list-none cursor-pointer px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap bg-slate-50/50 dark:bg-slate-900/50 [&::-webkit-details-marker]:hidden">
                                 <div>
-                                    <h4 class="text-sm font-extrabold text-slate-800 dark:text-slate-200">
-                                        {{ $m['mata_pelajaran']->nama_mapel }}
-                                    </h4>
+                                    <h4 class="text-sm font-extrabold text-slate-800 dark:text-slate-200">{{ $m['mata_pelajaran']->nama_mapel }}</h4>
                                     @if($m['guru'])
-                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                                        Pengampu: {{ $m['guru']->name }}
-                                    </p>
+                                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Pengampu: {{ $m['guru']->name }}</p>
                                     @endif
                                 </div>
 
-                                @if(!is_null($m['rata_rata']))
-                                <div class="text-right">
-                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">Rata-rata Mapel</span>
-                                    <div class="text-xl font-black
-                                        {{ $m['rata_rata'] >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
-                                           ($m['rata_rata'] >= 60 ? 'text-amber-600 dark:text-amber-400' :
-                                           'text-red-600 dark:text-red-400') }}">
-                                        {{ $m['rata_rata'] }}
-                                    </div>
+                                <div class="flex items-center gap-3 ml-auto">
+                                    @if(!is_null($m['nilai_akhir'] ?? null))
+                                        <div class="text-right">
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">Nilai Akhir:</span>
+                                            <div class="text-xl font-black {{ ($m['nilai_akhir'] ?? 0) >= 80 ? 'text-emerald-600 dark:text-emerald-400' : (($m['nilai_akhir'] ?? 0) >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
+                                                {{ isset($m['nilai_akhir']) ? (int) round($m['nilai_akhir']) : '-' }}
+                                            </div>
+                                        </div>
+                                    @elseif(!is_null($m['rata_rata'] ?? null))
+                                        <div class="text-right">
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">Rata-rata Mapel</span>
+                                            <div class="text-xl font-black {{ ($m['rata_rata'] ?? 0) >= 80 ? 'text-emerald-600 dark:text-emerald-400' : (($m['rata_rata'] ?? 0) >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
+                                                {{ $m['rata_rata'] ?? '-' }}
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <span class="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Lihat detail</span>
+                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
-                                @endif
-                            </div>
+                            </summary>
 
-                            <!-- Grade Items List -->
                             <div class="p-4 space-y-3">
                                 @if($m['tugas']->isEmpty() && $m['kuis']->isEmpty())
                                     <p class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Belum ada tugas atau kuis untuk mata pelajaran ini.</p>
                                 @else
-                                    {{-- List of Tugas --}}
                                     @foreach($m['tugas'] as $t)
                                         <div class="flex items-center justify-between gap-4 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 shadow-xs">
                                             <div class="min-w-0 flex-1 flex items-center gap-3">
@@ -78,33 +81,25 @@
 
                                             <div class="shrink-0 text-right">
                                                 @if(!is_null($t['nilai']))
-                                                    <span class="inline-block px-2.5 py-0.5 rounded-md text-xs font-extrabold
-                                                        {{ $t['nilai'] >= 80 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' :
-                                                           ($t['nilai'] >= 60 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' :
-                                                           'bg-red-500/10 text-red-700 dark:text-red-400') }}">
-                                                        {{ $t['nilai'] }}
+                                                    <span class="inline-block px-2.5 py-0.5 rounded-md text-xs font-extrabold {{ $t['nilai'] >= 80 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : ($t['nilai'] >= 60 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-red-500/10 text-red-700 dark:text-red-400') }}">
+                                                        {{ rtrim(rtrim(number_format((float) $t['nilai'], 2, '.', ''), '0'), '.') }}
                                                     </span>
                                                     <span class="text-[10px] text-slate-400 dark:text-slate-500">/{{ $t['tugas']->nilai_maksimum }}</span>
                                                 @elseif($t['status'] === 'terkumpul' || $t['status'] === 'diserahkan')
-                                                    <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                                                        Menunggu Penilaian
-                                                    </span>
+                                                    <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">Menunggu Penilaian</span>
                                                 @else
-                                                    @if(\Carbon\Carbon::parse($t['tugas']->deadline)->isPast())
-                                                        <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/10 text-red-600 dark:text-red-400">
-                                                            Terlambat
-                                                        </span>
+                                                    @if(
+                                                        \Carbon\Carbon::parse($t['tugas']->deadline)->isPast()
+                                                    )
+                                                        <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/10 text-red-600 dark:text-red-400">Terlambat</span>
                                                     @else
-                                                        <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/10 text-slate-500 dark:text-slate-400">
-                                                            Belum Dikumpul
-                                                        </span>
+                                                        <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/10 text-slate-500 dark:text-slate-400">Belum Dikumpul</span>
                                                     @endif
                                                 @endif
                                             </div>
                                         </div>
                                     @endforeach
 
-                                    {{-- List of Kuis --}}
                                     @foreach($m['kuis'] as $k)
                                         <div class="flex items-center justify-between gap-4 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 shadow-xs">
                                             <div class="min-w-0 flex-1 flex items-center gap-3">
@@ -121,24 +116,17 @@
 
                                             <div class="shrink-0 text-right">
                                                 @if(!is_null($k['nilai']))
-                                                    <span class="inline-block px-2.5 py-0.5 rounded-md text-xs font-extrabold
-                                                        {{ $k['nilai'] >= 80 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' :
-                                                           ($k['nilai'] >= 60 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' :
-                                                           'bg-red-500/10 text-red-700 dark:text-red-400') }}">
-                                                        {{ $k['nilai'] }}
-                                                    </span>
+                                                    <span class="inline-block px-2.5 py-0.5 rounded-md text-xs font-extrabold {{ $k['nilai'] >= 80 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : ($k['nilai'] >= 60 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-red-500/10 text-red-700 dark:text-red-400') }}">{{ rtrim(rtrim(number_format((float) $k['nilai'], 2, '.', ''), '0'), '.') }}</span>
                                                     <span class="text-[10px] text-slate-400 dark:text-slate-500">/{{ $k['kuis']->bobot_nilai }}</span>
                                                 @else
-                                                    <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/10 text-slate-500 dark:text-slate-400">
-                                                        Belum Dikerjakan
-                                                    </span>
+                                                    <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/10 text-slate-500 dark:text-slate-400">Belum Dikerjakan</span>
                                                 @endif
                                             </div>
                                         </div>
                                     @endforeach
                                 @endif
                             </div>
-                        </div>
+                        </details>
                     @endforeach
                 </div>
             </div>

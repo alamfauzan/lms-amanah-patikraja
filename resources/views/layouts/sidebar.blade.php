@@ -10,7 +10,7 @@
             ['name' => 'Data Siswa',    'route' => 'admin.siswa.index', 'icon' => 'users-siswa'],
             ['name' => 'Kelas',         'route' => 'kelas.index',      'icon' => 'book-open'],
             ['name' => 'Mata Pelajaran','route' => 'admin.mapel.index', 'icon' => 'book-open'],
-            ['name' => 'Jadwal',        'route' => 'jadwal.index', 'icon' => 'calendar'],
+            // Jadwal tidak ditampilkan untuk admin karena tidak dibutuhkan
             ['name' => 'Tahun Ajaran',  'route' => 'admin.tahun-ajaran.index', 'icon' => 'clock'],
             ['name' => 'Laporan',       'route' => 'admin.laporan.index',       'icon' => 'document-report'],
             ['name' => 'Pengaturan',    'route' => 'admin.pengaturan.index',    'icon' => 'cog'],
