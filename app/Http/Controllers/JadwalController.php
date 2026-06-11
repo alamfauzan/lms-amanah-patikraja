@@ -35,14 +35,19 @@ class JadwalController extends Controller
         return view('jadwal.index', compact('jadwalByHari', 'hariList'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         if (!auth()->user()->hasRole('admin')) abort(403);
         $kelas       = Kelas::all();
         $mapel       = MataPelajaran::all();
         $guru        = User::role('guru')->get();
         $hariList    = \App\Models\Jadwal::HARI;
-        return view('jadwal.create', compact('kelas', 'mapel', 'guru', 'hariList'));
+
+        $selectedKelasId = $request->query('kelas_id');
+        $selectedMapelId = $request->query('mapel_id');
+        $selectedGuruId  = $request->query('guru_id');
+
+        return view('jadwal.create', compact('kelas', 'mapel', 'guru', 'hariList', 'selectedKelasId', 'selectedMapelId', 'selectedGuruId'));
     }
 
     public function store(Request $request)
@@ -61,7 +66,7 @@ class JadwalController extends Controller
 
         Jadwal::create($validated);
 
-        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil ditambahkan!');
+        return redirect()->route('kelas.show', $validated['kelas_id'])->with('success', 'Jadwal berhasil ditambahkan!');
     }
 
     public function destroy($id)

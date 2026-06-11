@@ -108,9 +108,7 @@ class KelasController extends Controller
         $allSubjects = collect();
         if ($user->hasRole('admin')) {
             $allTeachers = User::role('guru')->get();
-            $allStudents = User::role('siswa')->whereDoesntHave('siswaKelas', function ($q) use ($kelas) {
-                $q->where('kelas_id', $kelas->id);
-            })->get();
+            $allStudents = User::role('siswa')->whereDoesntHave('siswaKelas')->get();
             $allSubjects = MataPelajaran::all();
         }
 
@@ -188,6 +186,12 @@ class KelasController extends Controller
             'siswa_id' => 'required|exists:users,id',
         ]);
 
+        $siswa = User::findOrFail($request->siswa_id);
+        $existingClass = $siswa->siswaKelas()->first();
+        if ($existingClass) {
+            return back()->withErrors(['siswa_id' => 'Siswa sudah terdaftar di kelas ' . $existingClass->nama_kelas]);
+        }
+
         $kelas = Kelas::findOrFail($kelasId);
         $kelas->siswa()->syncWithoutDetaching([$request->siswa_id]);
 
@@ -210,6 +214,22 @@ class KelasController extends Controller
     }
 
     /**
+     * Show form to assign a subject & teacher to Class (Admin action)
+     */
+    public function createSubject($kelasId)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $kelas = Kelas::findOrFail($kelasId);
+        $allSubjects = MataPelajaran::all();
+        $allTeachers = User::role('guru')->get();
+
+        return view('kelas.assign-mapel', compact('kelas', 'allSubjects', 'allTeachers'));
+    }
+
+    /**
      * Assign Subject & Teacher to Class (Admin action)
      */
     public function assignSubject(Request $request, $kelasId)
@@ -221,6 +241,10 @@ class KelasController extends Controller
         $validated = $request->validate([
             'mata_pelajaran_id' => 'required|exists:mata_pelajaran,id',
             'guru_id' => 'required|exists:users,id',
+            'hari' => 'nullable|integer|min:1|max:7',
+            'jam_mulai' => 'nullable',
+            'jam_selesai' => 'nullable',
+            'ruangan' => 'nullable|string|max:100',
         ]);
 
         KelasMapelGuru::updateOrCreate(
@@ -228,7 +252,64 @@ class KelasController extends Controller
             ['guru_id' => $request->guru_id]
         );
 
+        // Update existing schedules for this class and subject to match the new teacher
+        Jadwal::where('kelas_id', $kelasId)
+            ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
+            ->update(['guru_id' => $request->guru_id]);
+
+        if ($request->filled('hari') && $request->filled('jam_mulai') && $request->filled('jam_selesai')) {
+            Jadwal::create([
+                'kelas_id' => $kelasId,
+                'mata_pelajaran_id' => $request->mata_pelajaran_id,
+                'guru_id' => $request->guru_id,
+                'hari' => $request->hari,
+                'jam_mulai' => $request->jam_mulai,
+                'jam_selesai' => $request->jam_selesai,
+                'ruangan' => $request->ruangan,
+            ]);
+        }
+
         return redirect()->route('kelas.show', $kelasId)->with('success', 'Mata Pelajaran & Guru pengampu berhasil ditugaskan!');
+    }
+
+    /**
+     * Show form to edit subject pengampu in Class (Admin action)
+     */
+    public function editSubject($kelasId, $id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $kelas = Kelas::findOrFail($kelasId);
+        $link = KelasMapelGuru::with('mataPelajaran')->findOrFail($id);
+        $allTeachers = User::role('guru')->get();
+
+        return view('kelas.edit-mapel', compact('kelas', 'link', 'allTeachers'));
+    }
+
+    /**
+     * Update subject pengampu in Class (Admin action)
+     */
+    public function updateSubject(Request $request, $kelasId, $id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'guru_id' => 'required|exists:users,id',
+        ]);
+
+        $link = KelasMapelGuru::findOrFail($id);
+        $link->update(['guru_id' => $request->guru_id]);
+
+        // Update existing schedules for this class and subject to match the new teacher
+        Jadwal::where('kelas_id', $kelasId)
+            ->where('mata_pelajaran_id', $link->mata_pelajaran_id)
+            ->update(['guru_id' => $request->guru_id]);
+
+        return redirect()->route('kelas.show', $kelasId)->with('success', 'Pengampu mata pelajaran berhasil diupdate!');
     }
 
     /**

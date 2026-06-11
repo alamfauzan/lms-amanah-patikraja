@@ -21,7 +21,7 @@
                         <select id="kelas_id" name="kelas_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                             <option value="">Pilih Kelas</option>
                             @foreach($kelas as $k)
-                                <option value="{{ $k->id }}" {{ old('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas }}</option>
+                                <option value="{{ $k->id }}" {{ (old('kelas_id') ?? $selectedKelasId ?? '') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas }}</option>
                             @endforeach
                         </select>
                         @error('kelas_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
@@ -31,7 +31,7 @@
                         <select id="mata_pelajaran_id" name="mata_pelajaran_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                             <option value="">Pilih Mapel</option>
                             @foreach($mapel as $m)
-                                <option value="{{ $m->id }}" {{ old('mata_pelajaran_id') == $m->id ? 'selected' : '' }}>{{ $m->nama_mapel }}</option>
+                                <option value="{{ $m->id }}" {{ (old('mata_pelajaran_id') ?? $selectedMapelId ?? '') == $m->id ? 'selected' : '' }}>{{ $m->nama_mapel }}</option>
                             @endforeach
                         </select>
                         @error('mata_pelajaran_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
@@ -42,7 +42,7 @@
                     <select id="guru_id" name="guru_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                         <option value="">Pilih Guru</option>
                         @foreach($guru as $g)
-                            <option value="{{ $g->id }}" {{ old('guru_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
+                            <option value="{{ $g->id }}" {{ (old('guru_id') ?? $selectedGuruId ?? '') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
                         @endforeach
                     </select>
                     @error('guru_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror

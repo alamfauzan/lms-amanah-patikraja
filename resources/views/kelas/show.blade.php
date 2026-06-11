@@ -63,12 +63,23 @@
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden {{ auth()->user()->hasRole('siswa') ? 'lg:col-span-3' : 'lg:col-span-2' }}">
                 <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <h3 class="font-bold text-slate-800 dark:text-slate-100">Mata Pelajaran</h3>
-                    @php
-                        $mapelCount = auth()->user()->hasRole('guru')
-                            ? $kelas->kelasMapelGuru->where('guru_id', auth()->id())->count()
-                            : $kelas->kelasMapelGuru->count();
-                    @endphp
-                    <span class="text-xs font-bold text-indigo-600 bg-indigo-500/10 px-2.5 py-1 rounded-full">{{ $mapelCount }} Mapel</span>
+                    <div class="flex items-center gap-3">
+                        @php
+                            $mapelCount = auth()->user()->hasRole('guru')
+                                ? $kelas->kelasMapelGuru->where('guru_id', auth()->id())->count()
+                                : $kelas->kelasMapelGuru->count();
+                        @endphp
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-500/10 px-2.5 py-1 rounded-full">{{ $mapelCount }} Mapel</span>
+                        @if(auth()->user()->hasRole('admin') && $allSubjects->isNotEmpty())
+                            <a href="{{ route('kelas.mapel.create', $kelas->id) }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Tambah Mapel
+                            </a>
+                        @endif
+                    </div>
                 </div>
 
                 @if($kelas->kelasMapelGuru->isEmpty())
@@ -121,9 +132,9 @@
                                             $shortDays = [1=>'SEN',2=>'SEL',3=>'RAB',4=>'KAM',5=>'JUM',6=>'SAB',7=>'MIN'];
                                         @endphp
                                         @if($jadwalMapel->isNotEmpty())
-                                            <div class="flex flex-wrap gap-1 mt-1.5">
+                                            <div class="flex flex-wrap items-center gap-1.5 mt-1.5" @click.stop>
                                                 @foreach($jadwalMapel as $jd)
-                                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group/badge">
                                                         {{ $shortDays[$jd->hari] ?? '?' }}
                                                         <span class="font-normal text-slate-400">{{ \Carbon\Carbon::parse($jd->jam_mulai)->format('H:i') }}</span>
                                                     </span>
@@ -132,11 +143,18 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0" @click.stop>
+                                <div class="flex items-center gap-1.5 shrink-0" @click.stop>
                                     @if(auth()->user()->hasRole('admin'))
-                                        <form method="POST" action="{{ route('kelas.mapel.remove', [$kelas->id, $kmg->id]) }}" onsubmit="return confirm('Hapus mapel ini dari kelas?')">
+                                        <a href="{{ route('kelas.mapel.edit', [$kelas->id, $kmg->id]) }}"
+                                           class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+                                           title="Edit Pengampu">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </a>
+                                        <form method="POST" action="{{ route('kelas.mapel.remove', [$kelas->id, $kmg->id]) }}" class="inline" onsubmit="return confirm('Hapus mapel ini dari kelas?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors" title="Hapus Mapel">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                             </button>
                                         </form>
@@ -148,31 +166,6 @@
                                 </div>
                             </div>
                         @endforeach
-                    </div>
-                @endif
-
-                {{-- Assign Subject (Admin only) --}}
-                @if(auth()->user()->hasRole('admin') && $allSubjects->isNotEmpty())
-                    <div class="px-6 py-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                        <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Tambah Mata Pelajaran</h4>
-                        <form method="POST" action="{{ route('kelas.mapel.assign', $kelas->id) }}" class="flex flex-col sm:flex-row gap-3">
-                            @csrf
-                            <select name="mata_pelajaran_id" class="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Pilih Mata Pelajaran</option>
-                                @foreach($allSubjects as $mapel)
-                                    <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
-                                @endforeach
-                            </select>
-                            <select name="guru_id" class="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Pilih Guru Pengampu</option>
-                                @foreach($allTeachers as $guru)
-                                    <option value="{{ $guru->id }}">{{ $guru->name }}</option>
-                                @endforeach
-                            </select>
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shrink-0">
-                                Tugaskan
-                            </button>
-                        </form>
                     </div>
                 @endif
             </div>
@@ -214,18 +207,88 @@
                 @if(auth()->user()->hasRole('admin') && $allStudents->isNotEmpty())
                     <div class="px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                         <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Tambah Siswa</h4>
-                        <form method="POST" action="{{ route('kelas.siswa.add', $kelas->id) }}" class="flex gap-2">
+                        <form method="POST" action="{{ route('kelas.siswa.add', $kelas->id) }}" class="flex gap-2 items-start">
                             @csrf
-                            <select name="siswa_id" class="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Pilih Siswa</option>
-                                @foreach($allStudents as $student)
-                                    <option value="{{ $student->id }}">{{ $student->name }}</option>
-                                @endforeach
-                            </select>
+                            <div x-data="{
+                                open: false,
+                                search: '',
+                                selectedId: '',
+                                selectedName: '',
+                                students: [
+                                    @foreach($allStudents as $student)
+                                        { id: '{{ $student->id }}', name: '{{ addslashes($student->name) }}' },
+                                    @endforeach
+                                ],
+                                get filteredStudents() {
+                                    if (this.search === '' || this.search === this.selectedName) return this.students;
+                                    return this.students.filter(student => 
+                                        student.name.toLowerCase().includes(this.search.toLowerCase())
+                                    );
+                                },
+                                select(student) {
+                                    this.selectedId = student.id;
+                                    this.selectedName = student.name;
+                                    this.search = student.name;
+                                    this.open = false;
+                                }
+                            }" class="relative flex-1" @click.away="open = false; if(selectedId) { search = selectedName } else { search = '' }">
+                                
+                                <!-- Hidden input for form submission -->
+                                <input type="hidden" name="siswa_id" :value="selectedId" required>
+
+                                <!-- Trigger Input Box -->
+                                <div class="relative" style="position: relative;">
+                                    <input type="text" 
+                                           x-model="search" 
+                                           @focus="open = true; if(selectedId) { search = '' }" 
+                                           @click="open = true; if(selectedId) { search = '' }"
+                                           @keydown.escape="open = false; if(selectedId) { search = selectedName } else { search = '' }"
+                                           @keydown.enter.prevent="
+                                               if (filteredStudents.length > 0) {
+                                                   select(filteredStudents[0]);
+                                               }
+                                           "
+                                           placeholder="Pilih Siswa (ketik untuk mencari...)" 
+                                           style="padding-right: 40px;"
+                                           class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10 transition duration-150">
+                                    
+                                    <!-- Dropdown Indicator -->
+                                    <div style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; display: flex; align-items: center;">
+                                        <svg class="transition-transform duration-200" :class="open ? 'rotate-180' : ''" style="width: 16px; height: 16px; color: #94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <!-- Dropdown Menu -->
+                                <div x-show="open" 
+                                     class="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto custom-scrollbar"
+                                     style="display: none;"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 translate-y-1">
+                                    
+                                    <template x-for="student in filteredStudents" :key="student.id">
+                                        <button type="button" @mousedown="select(student)"
+                                                class="w-full text-left px-3.5 py-2 text-sm text-slate-705 dark:text-slate-250 hover:bg-indigo-650 hover:text-white transition-colors">
+                                            <span x-text="student.name"></span>
+                                        </button>
+                                    </template>
+                                    <div x-show="filteredStudents.length === 0" class="px-3.5 py-3 text-xs text-slate-400 italic text-center">
+                                        Siswa tidak ditemukan
+                                    </div>
+                                </div>
+                            </div>
                             <button type="submit" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shrink-0">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                             </button>
                         </form>
+                        @error('siswa_id')
+                            <p class="mt-1.5 text-xs text-red-500 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 @endif
             </div>

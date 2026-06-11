@@ -241,7 +241,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('kelas', KelasController::class);
     Route::post('kelas/{kelas}/siswa',              [KelasController::class, 'addStudent'])->name('kelas.siswa.add');
     Route::delete('kelas/{kelas}/siswa/{siswa}',    [KelasController::class, 'removeStudent'])->name('kelas.siswa.remove');
+    Route::get('kelas/{kelas}/mapel/create',        [KelasController::class, 'createSubject'])->name('kelas.mapel.create');
     Route::post('kelas/{kelas}/mapel',              [KelasController::class, 'assignSubject'])->name('kelas.mapel.assign');
+    Route::get('kelas/{kelas}/mapel/{id}/edit',     [KelasController::class, 'editSubject'])->name('kelas.mapel.edit');
+    Route::put('kelas/{kelas}/mapel/{id}',          [KelasController::class, 'updateSubject'])->name('kelas.mapel.update');
     Route::delete('kelas/{kelas}/mapel/{id}',       [KelasController::class, 'removeSubject'])->name('kelas.mapel.remove');
 
     // ── PERTEMUAN (nested under kelas) ─────────────────────
