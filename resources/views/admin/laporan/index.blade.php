@@ -1,7 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">Laporan Pembelajaran</h2>
+        <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">Laporan Pembelajaran</h2>
+    </x-slot>
+
+    <div class="space-y-6">
+        <div class="flex justify-end">
             <a href="{{ route('admin.laporan.export') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -10,9 +13,6 @@
                 Ekspor Laporan (CSV)
             </a>
         </div>
-    </x-slot>
-
-    <div class="space-y-6">
         {{-- Stats Grid --}}
         <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 animate-fade-in">
             {{-- Guru --}}

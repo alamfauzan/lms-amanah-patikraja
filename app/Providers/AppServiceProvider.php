@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Fix untuk shared hosting yang tidak bisa baca composer.json
+        $this->app->instance('app.namespace', 'App\\');
     }
 }

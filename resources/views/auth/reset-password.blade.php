@@ -1,4 +1,17 @@
 <x-guest-layout>
+    <div class="flex justify-center mb-6">
+        <div class="w-20 h-20 bg-white border border-slate-150 rounded-2xl flex items-center justify-center p-2 shadow-sm">
+            <img src="{{ asset('logo.png') }}" alt="Logo" class="max-h-full max-w-full object-contain">
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 text-center tracking-tight mb-1">
+        Reset Password
+    </h2>
+    <p class="text-sm text-gray-500 text-center mb-8">
+        Choose a new secure password
+    </p>
+
     <form method="POST" action="{{ route('password.store') }}">
         @csrf
 

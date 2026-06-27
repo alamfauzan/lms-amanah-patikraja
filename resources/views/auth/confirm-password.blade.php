@@ -1,5 +1,18 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
+    <div class="flex justify-center mb-6">
+        <div class="w-20 h-20 bg-white border border-slate-150 rounded-2xl flex items-center justify-center p-2 shadow-sm">
+            <img src="{{ asset('logo.png') }}" alt="Logo" class="max-h-full max-w-full object-contain">
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 text-center tracking-tight mb-1">
+        Confirm Password
+    </h2>
+    <p class="text-sm text-gray-500 text-center mb-6">
+        Confirm your password for this secure area
+    </p>
+
+    <div class="mb-4 text-sm text-gray-600 leading-relaxed text-center">
         {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
     </div>
 

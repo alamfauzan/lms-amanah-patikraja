@@ -61,8 +61,8 @@
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
              class="flex items-center gap-3">
-            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-indigo-500 text-white font-bold text-base shadow-lg shadow-blue-500/20">
-                L
+            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-slate-200/80 p-0.5 shadow-sm">
+                <img src="{{ asset('logo.png') }}" alt="Logo" class="max-h-full max-w-full object-contain">
             </div>
             <span class="font-extrabold text-base text-white tracking-wider uppercase">LMS</span>
         </div>

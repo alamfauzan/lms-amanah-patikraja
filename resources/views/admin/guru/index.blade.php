@@ -1,7 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">Data Guru</h2>
+        <h2 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">Data Guru</h2>
+    </x-slot>
+
+    <div class="space-y-6">
+        <div class="flex justify-end">
             <a href="{{ route('admin.guru.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -10,9 +13,6 @@
                 Tambah Guru
             </a>
         </div>
-    </x-slot>
-
-    <div class="space-y-6">
         {{-- Flash Message --}}
         @if(session('success'))
             <div class="flex items-center gap-3 px-5 py-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl text-sm font-medium text-emerald-700 dark:text-emerald-400">
