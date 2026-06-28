@@ -17,7 +17,7 @@ $password = 'Amanah2026';
 $hashedPassword = Hash::make($password);
 
 // Hubungkan ke tahun ajaran aktif di database
-$activeTahun = DB::table('tahun_ajaran')->where('status', 1)->value('tahun_ajaran') ?: '2025/2026';
+$activeTahun = DB::table('tahun_ajaran')->where('is_aktif', 1)->value('tahun_ajaran') ?: '2025/2026';
 echo "Tahun Ajaran Aktif: {$activeTahun}\n";
 
 // Daftar siswa beserta kelasnya
